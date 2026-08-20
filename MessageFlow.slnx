@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/benchmarks/">
+    <Project Path="benchmarks/MessageFlow.Benchmarks/MessageFlow.Benchmarks.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/MessageFlow/MessageFlow.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/MessageFlow.Tests/MessageFlow.Tests.csproj" />
+  </Folder>
+</Solution>
