@@ -64,8 +64,12 @@ def summary_for(lines: list[str], index: int) -> str:
     """Return the ``<summary>`` text of the doc comment above ``index``."""
     doc: list[str] = []
     cursor = index - 1
-    while cursor >= 0 and lines[cursor].strip().startswith(("///", "[")):
-        doc.insert(0, lines[cursor].strip())
+    while cursor >= 0:
+        stripped = lines[cursor].strip()
+        if stripped.startswith("///"):
+            doc.insert(0, stripped)
+        elif not stripped.startswith("["):
+            break
         cursor -= 1
 
     text = " ".join(line.lstrip("/").strip() for line in doc)
