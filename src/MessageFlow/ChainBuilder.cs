@@ -57,9 +57,7 @@ public sealed class ChainBuilder<TRequest, TResponse>
         ArgumentNullException.ThrowIfNull(predicate);
         ArgumentNullException.ThrowIfNull(handler);
 
-        return Use((request, nextHandler, cancellationToken) => predicate(request)
-            ? handler(request, cancellationToken)
-            : nextHandler(request, cancellationToken));
+        return Use(new PredicateHandler(predicate, handler));
     }
 
     /// <summary>
@@ -109,5 +107,19 @@ public sealed class ChainBuilder<TRequest, TResponse>
             NextHandler<TRequest, TResponse> nextHandler,
             CancellationToken cancellationToken)
             => handler(request, nextHandler, cancellationToken);
+    }
+
+    private sealed class PredicateHandler(
+        Func<TRequest, bool> predicate,
+        Func<TRequest, CancellationToken, ValueTask<TResponse>> handler)
+        : IHandler<TRequest, TResponse>
+    {
+        public ValueTask<TResponse> HandleAsync(
+            TRequest request,
+            NextHandler<TRequest, TResponse> nextHandler,
+            CancellationToken cancellationToken)
+            => predicate(request)
+                ? handler(request, cancellationToken)
+                : nextHandler(request, cancellationToken);
     }
 }
