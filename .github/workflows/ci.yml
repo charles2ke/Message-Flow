@@ -1,0 +1,103 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    name: Build, test and coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      - name: Restore
+        run: dotnet restore MessageFlow.slnx
+
+      - name: Build
+        run: dotnet build MessageFlow.slnx --configuration Release --no-restore
+
+      - name: Test with 100% coverage gate
+        run: |
+          dotnet test tests/MessageFlow.Tests/MessageFlow.Tests.csproj \
+            --configuration Release \
+            --no-build \
+            --logger "trx;LogFileName=test-results.trx" \
+            -p:CollectCoverage=true \
+            -p:CoverletOutputFormat="cobertura%2cjson" \
+            -p:CoverletOutput=../../artifacts/coverage/ \
+            -p:Threshold=100 \
+            -p:ThresholdType="line%2cbranch%2cmethod"
+
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: artifacts/coverage/
+
+  vulnerability-scan:
+    name: Dependency vulnerability scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      - name: Restore
+        run: dotnet restore MessageFlow.slnx
+
+      - name: Check for vulnerable and deprecated packages
+        run: |
+          dotnet list MessageFlow.slnx package --vulnerable --include-transitive > vulnerable.txt
+          cat vulnerable.txt
+          if grep -q "has the following vulnerable packages" vulnerable.txt; then
+            echo "::error::Vulnerable NuGet packages detected."
+            exit 1
+          fi
+          dotnet list MessageFlow.slnx package --deprecated
+
+  performance:
+    name: Performance benchmarks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      - name: Run benchmarks
+        run: |
+          dotnet run \
+            --project benchmarks/MessageFlow.Benchmarks/MessageFlow.Benchmarks.csproj \
+            --configuration Release -- \
+            --filter '*' --job short --exporters github markdown
+
+      - name: Upload benchmark results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmarks
+          path: BenchmarkDotNet.Artifacts/results/
