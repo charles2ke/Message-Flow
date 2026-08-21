@@ -76,6 +76,16 @@ var chain = Chain.Create<string, string>()
     .Build();
 ```
 
+## Samples
+
+The [`samples/MessageFlow.Samples`](samples/MessageFlow.Samples/README.md) project contains runnable
+examples for quick start routing, `HandlerBase<,>` handlers, middleware, fallbacks, cancellation and
+a custom retry handler:
+
+```bash
+dotnet run --project samples/MessageFlow.Samples/MessageFlow.Samples.csproj
+```
+
 ## Public API
 
 <!-- BEGIN AUTO-GENERATED: api -->
@@ -96,6 +106,7 @@ var chain = Chain.Create<string, string>()
 | Path | Description |
 | --- | --- |
 | `src/MessageFlow` | The library. |
+| `samples/MessageFlow.Samples` | Runnable examples, see [samples/MessageFlow.Samples](samples/MessageFlow.Samples/README.md). |
 | `tests/MessageFlow.Tests` | xUnit tests, gated at 100% line, branch and method coverage. |
 | `benchmarks/MessageFlow.Benchmarks` | BenchmarkDotNet performance benchmarks. |
 | `scripts/update_readme.py` | Regenerates the auto-generated README sections. |
