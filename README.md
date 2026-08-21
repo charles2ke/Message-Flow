@@ -12,6 +12,32 @@ request is just a delegate invocation.
 ![branch coverage](https://img.shields.io/badge/branch%20coverage-100%25-brightgreen)
 <!-- END AUTO-GENERATED: coverage -->
 
+## How it works
+
+A request enters the chain and is offered to each handler in registration order. The first handler
+that accepts it produces the response; middleware-style handlers can also run code after the rest of
+the chain returns. If no handler accepts the request, the configured fallback runs — or
+`UnhandledRequestException` is thrown when there is none.
+
+```mermaid
+flowchart LR
+    request([Request]) --> h1
+
+    subgraph chain ["IChain (pre-compiled pipeline)"]
+        direction LR
+        h1[Handler 1] -- next --> h2[Handler 2] -- next --> hn[Handler N]
+    end
+
+    hn -- next --> terminal{Fallback configured?}
+    terminal -- yes --> fallback[Fallback]
+    terminal -- no --> error([UnhandledRequestException])
+
+    h1 -- handled --> response([Response])
+    h2 -- handled --> response
+    hn -- handled --> response
+    fallback --> response
+```
+
 ## Features
 
 - Async-first API built on `ValueTask`, with full `CancellationToken` propagation.
