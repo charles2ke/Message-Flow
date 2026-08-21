@@ -2,6 +2,9 @@
   <Folder Name="/benchmarks/">
     <Project Path="benchmarks/MessageFlow.Benchmarks/MessageFlow.Benchmarks.csproj" />
   </Folder>
+  <Folder Name="/samples/">
+    <Project Path="samples/MessageFlow.Samples/MessageFlow.Samples.csproj" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/MessageFlow/MessageFlow.csproj" />
   </Folder>

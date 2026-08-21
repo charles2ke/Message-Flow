@@ -31,6 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\samples\MessageFlow.Samples\MessageFlow.Samples.csproj" />
     <ProjectReference Include="..\..\src\MessageFlow\MessageFlow.csproj" />
   </ItemGroup>
 
