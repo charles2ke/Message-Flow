@@ -48,6 +48,8 @@ flowchart LR
 - Nested branches via `UseBranch`, with automatic fall-through back to the parent chain.
 - Merging of separately authored chain fragments — or already built chains — via `Use`.
 - Optional fallback for unhandled requests.
+- Opt-in observability: `UseLogging` for structured log entries and `UseTracing` for
+  `System.Diagnostics.Activity` traces — no third-party dependency required.
 
 ## Installation
 
@@ -177,11 +179,53 @@ Merging a builder snapshots its handlers, so later changes to the fragment do no
 was already merged into, the same fragment can be merged into several chains, and merging a builder
 into itself is safe.
 
+### Logging and tracing
+
+`UseLogging` and `UseTracing` are middleware-style handlers that observe everything registered after
+them, so registering them first observes the whole chain.
+
+`UseLogging` writes one entry when a request enters the chain, one when it completes — including the
+elapsed time — and one at `ChainLogLevel.Error` when the chain throws, before rethrowing the
+exception unchanged. Only type names and durations are logged, never the request itself, so payloads
+cannot leak into log storage. The `IChainLogger` abstraction keeps the library dependency-free; an
+adapter over `Microsoft.Extensions.Logging.ILogger` — or any other logging framework — is a few
+lines of code:
+
+```csharp
+public sealed class ChainLoggerAdapter(ILogger logger) : IChainLogger
+{
+    public bool IsEnabled(ChainLogLevel level) => logger.IsEnabled((LogLevel)level);
+
+    public void Log(ChainLogLevel level, string message, Exception? exception)
+        => logger.Log((LogLevel)level, exception, "{Message}", message);
+}
+```
+
+`UseTracing` wraps the remainder of the chain in an `Activity` emitted on
+`ChainDiagnostics.ActivitySource`. The activity is only created when a listener is subscribed, so an
+unobserved chain costs a single delegate call. Failures set the activity status to `Error` and record
+an exception event:
+
+```csharp
+var chain = Chain.Create<Ticket, string>()
+    .UseLogging(logger, ChainLogLevel.Information)
+    .UseTracing()
+    .Use(new RefundHandler())
+    .WithFallback((ticket, _) => new ValueTask<string>($"queued:{ticket.Id}"))
+    .Build();
+```
+
+Collect the traces with OpenTelemetry by subscribing to the activity source:
+
+```csharp
+tracerProviderBuilder.AddSource(ChainDiagnostics.ActivitySourceName);
+```
+
 ## Samples
 
 The [`samples/MessageFlow.Samples`](samples/MessageFlow.Samples/README.md) project contains runnable
 examples for quick start routing, `HandlerBase<,>` handlers, merged chain fragments, middleware,
-fallbacks, cancellation and a custom retry handler:
+fallbacks, cancellation, logging and tracing, and a custom retry handler:
 
 ```bash
 dotnet run --project samples/MessageFlow.Samples/MessageFlow.Samples.csproj
@@ -194,9 +238,13 @@ dotnet run --project samples/MessageFlow.Samples/MessageFlow.Samples.csproj
 | --- | --- | --- |
 | `Chain&lt;TRequest, TResponse&gt;` | class | Default IChain&lt;TRequest, TResponse&gt; implementation. The handler pipeline is composed once, at build time, so execution is a simple delegate call. |
 | `ChainBuilder&lt;TRequest, TResponse&gt;` | class | Builds an immutable IChain&lt;TRequest, TResponse&gt; from an ordered set of handlers. |
+| `ChainBuilderDiagnosticsExtensions` | class | Adds logging and tracing middleware to a ChainBuilder&lt;TRequest, TResponse&gt;. |
+| `ChainDiagnostics` | class | The diagnostic primitives the library exposes to tracing infrastructure such as OpenTelemetry. |
 | `Chain` | class | Entry point for creating chains of responsibility. |
+| `ChainLogLevel` | enum | The severity of an entry written by a chain to an IChainLogger. |
 | `HandlerBase&lt;TRequest, TResponse&gt;` | class | Convenience base class for handlers that either fully handle a request or pass it on. |
 | `IChain&lt;TRequest, TResponse&gt;` | interface | An immutable, pre-compiled chain of responsibility. |
+| `IChainLogger` | interface | Receives the log entries a chain writes while executing a request. |
 | `IHandler&lt;TRequest, TResponse&gt;` | interface | A single link of a chain of responsibility. |
 | `NextHandler&lt;TRequest, TResponse&gt;` | delegate | Represents the next step of a chain of responsibility. |
 | `UnhandledRequestException` | class | Thrown when no handler of a chain accepted the request and no fallback was configured. |

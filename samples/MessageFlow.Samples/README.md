@@ -15,6 +15,7 @@ dotnet run --project samples/MessageFlow.Samples/MessageFlow.Samples.csproj
 | [`UnhandledRequestSample`](UnhandledRequestSample.cs) | `UnhandledRequestException` versus a configured fallback. |
 | [`CancellationSample`](CancellationSample.cs) | `CancellationToken` propagation through every handler. |
 | [`RetrySample`](RetrySample.cs) | A hand-written `IHandler<,>` implementing a retry policy around the chain. |
+| [`DiagnosticsSample`](DiagnosticsSample.cs) | `UseLogging` and `UseTracing` observing every request of the chain. |
 
 Every sample exposes a `BuildChain` method (so the chain can be reused or asserted on) and a
 `RunAsync(TextWriter, CancellationToken)` method that returns its results. The samples are covered
