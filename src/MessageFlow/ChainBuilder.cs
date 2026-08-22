@@ -143,10 +143,11 @@ public sealed class ChainBuilder<TRequest, TResponse>
 
         var branch = new ChainBuilder<TRequest, TResponse>();
         configure(branch);
+        var branchComposer = branch.CreateComposer();
 
         _steps.Add(nextHandler =>
         {
-            var branchPipeline = branch.BuildPipeline(nextHandler);
+            var branchPipeline = branchComposer(nextHandler);
             return (request, cancellationToken) => predicate(request)
                 ? branchPipeline(request, cancellationToken)
                 : nextHandler(request, cancellationToken);
@@ -201,15 +202,6 @@ public sealed class ChainBuilder<TRequest, TResponse>
             return pipeline;
         };
     }
-
-    /// <summary>
-    /// Composes the configured handlers into a single delegate, using <paramref name="terminal"/> as the
-    /// step invoked when no handler accepted the request and no fallback was configured.
-    /// </summary>
-    /// <param name="terminal">The step invoked when the configured handlers do not accept the request.</param>
-    /// <returns>The composed pipeline.</returns>
-    private NextHandler<TRequest, TResponse> BuildPipeline(NextHandler<TRequest, TResponse> terminal)
-        => CreateComposer()(terminal);
 
     private sealed class DelegateHandler(
         Func<TRequest, NextHandler<TRequest, TResponse>, CancellationToken, ValueTask<TResponse>> handler)
