@@ -41,6 +41,62 @@ public sealed class ChainBuilder<TRequest, TResponse>
     }
 
     /// <summary>
+    /// Appends every handler of <paramref name="other"/> to the end of the chain.
+    /// </summary>
+    /// <remarks>
+    /// The merged handlers are composed against the continuation of this chain, so a request the
+    /// merged handlers do not accept flows to the next handler of this chain — unless
+    /// <paramref name="other"/> configures its own fallback, which then becomes the terminal step of
+    /// the merged segment and the remaining handlers of this chain are never reached.
+    /// The handlers of <paramref name="other"/> are snapshotted at merge time, so later changes to
+    /// <paramref name="other"/> do not affect this chain, and merging a builder into itself is safe.
+    /// The merged segment counts as one handler towards
+    /// <see cref="IChain{TRequest, TResponse}.Count"/>, regardless of how many handlers it contains.
+    /// </remarks>
+    /// <param name="other">The builder whose handlers are appended.</param>
+    /// <returns>The same builder instance, for chaining.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="other"/> is <see langword="null"/>.</exception>
+    public ChainBuilder<TRequest, TResponse> Use(ChainBuilder<TRequest, TResponse> other)
+    {
+        ArgumentNullException.ThrowIfNull(other);
+
+        _steps.Add(other.CreateComposer());
+        return this;
+    }
+
+    /// <summary>
+    /// Appends an already built chain to the end of this chain.
+    /// </summary>
+    /// <remarks>
+    /// Chains built by <see cref="Build"/> are re-composed against the continuation of this chain,
+    /// so a request the merged chain does not accept flows to the next handler of this chain instead
+    /// of throwing <see cref="UnhandledRequestException"/> — unless the merged chain was built with a
+    /// fallback, which then becomes the terminal step of the merged segment. A custom
+    /// <see cref="IChain{TRequest, TResponse}"/> implementation cannot be re-composed, so it is
+    /// executed as-is and terminates the chain.
+    /// The merged chain counts as one handler towards
+    /// <see cref="IChain{TRequest, TResponse}.Count"/>, regardless of how many handlers it contains.
+    /// </remarks>
+    /// <param name="chain">The chain to append.</param>
+    /// <returns>The same builder instance, for chaining.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="chain"/> is <see langword="null"/>.</exception>
+    public ChainBuilder<TRequest, TResponse> Use(IChain<TRequest, TResponse> chain)
+    {
+        ArgumentNullException.ThrowIfNull(chain);
+
+        if (chain is Chain<TRequest, TResponse> composed)
+        {
+            _steps.Add(composed.Composer);
+        }
+        else
+        {
+            _steps.Add(_ => chain.ExecuteAsync);
+        }
+
+        return this;
+    }
+
+    /// <summary>
     /// Appends a handler that only runs when <paramref name="predicate"/> matches the request;
     /// otherwise the request flows to the next handler.
     /// </summary>
@@ -119,11 +175,31 @@ public sealed class ChainBuilder<TRequest, TResponse>
     /// Composes the configured handlers into an immutable chain.
     /// </summary>
     /// <returns>The composed chain.</returns>
-    public IChain<TRequest, TResponse> Build()
-    {
-        var pipeline = BuildPipeline(static (_, _) => throw new UnhandledRequestException());
+    public IChain<TRequest, TResponse> Build() => new Chain<TRequest, TResponse>(CreateComposer(), _steps.Count);
 
-        return new Chain<TRequest, TResponse>(pipeline, _steps.Count);
+    /// <summary>
+    /// Snapshots the configured handlers into an open composition: a function turning the step invoked
+    /// when no handler accepted the request into the composed pipeline.
+    /// </summary>
+    /// <returns>The open composition of the configured handlers.</returns>
+    private Func<NextHandler<TRequest, TResponse>, NextHandler<TRequest, TResponse>> CreateComposer()
+    {
+        var steps = _steps.ToArray();
+        var fallback = _fallback;
+
+        return terminal =>
+        {
+            var pipeline = fallback is null
+                ? terminal
+                : (request, cancellationToken) => fallback(request, cancellationToken);
+
+            for (var i = steps.Length - 1; i >= 0; i--)
+            {
+                pipeline = steps[i](pipeline);
+            }
+
+            return pipeline;
+        };
     }
 
     /// <summary>
@@ -133,20 +209,7 @@ public sealed class ChainBuilder<TRequest, TResponse>
     /// <param name="terminal">The step invoked when the configured handlers do not accept the request.</param>
     /// <returns>The composed pipeline.</returns>
     private NextHandler<TRequest, TResponse> BuildPipeline(NextHandler<TRequest, TResponse> terminal)
-    {
-        var fallback = _fallback;
-        var pipeline = fallback is null
-            ? terminal
-            : (request, cancellationToken) => fallback(request, cancellationToken);
-
-        var steps = _steps.ToArray();
-        for (var i = steps.Length - 1; i >= 0; i--)
-        {
-            pipeline = steps[i](pipeline);
-        }
-
-        return pipeline;
-    }
+        => CreateComposer()(terminal);
 
     private sealed class DelegateHandler(
         Func<TRequest, NextHandler<TRequest, TResponse>, CancellationToken, ValueTask<TResponse>> handler)

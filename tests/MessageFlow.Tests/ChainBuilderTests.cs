@@ -264,6 +264,207 @@ public sealed class ChainBuilderTests
         Assert.Throws<ArgumentNullException>(() => builder.UseBranch(_ => true, null!));
     }
 
+    [Fact]
+    public async Task Use_MergedBuilder_HandlesTheRequest()
+    {
+        var fragment = Chain.Create<int, string>()
+            .UseWhen(request => request == 1, (_, _) => new ValueTask<string>("fragment:one"));
+
+        var chain = Chain.Create<int, string>()
+            .Use(fragment)
+            .WithFallback((_, _) => new ValueTask<string>("trunk"))
+            .Build();
+
+        Assert.Equal(1, chain.Count);
+        Assert.Equal("fragment:one", await chain.ExecuteAsync(1));
+    }
+
+    [Fact]
+    public async Task Use_MergedBuilder_UnhandledRequest_FallsThroughToTheTrunk()
+    {
+        var fragment = Chain.Create<int, string>()
+            .UseWhen(request => request == 1, (_, _) => new ValueTask<string>("fragment:one"));
+
+        var withFallback = Chain.Create<int, string>()
+            .Use(fragment)
+            .UseWhen(request => request == 2, (_, _) => new ValueTask<string>("trunk:two"))
+            .WithFallback((request, _) => new ValueTask<string>($"trunk fallback:{request}"))
+            .Build();
+
+        var withoutFallback = Chain.Create<int, string>()
+            .Use(fragment)
+            .Build();
+
+        Assert.Equal("trunk:two", await withFallback.ExecuteAsync(2));
+        Assert.Equal("trunk fallback:3", await withFallback.ExecuteAsync(3));
+        await Assert.ThrowsAsync<UnhandledRequestException>(async () => await withoutFallback.ExecuteAsync(3));
+    }
+
+    [Fact]
+    public async Task Use_MergedBuilder_WithOwnFallback_DoesNotFallThroughToTheTrunk()
+    {
+        var fragment = Chain.Create<int, string>()
+            .UseWhen(request => request == 1, (_, _) => new ValueTask<string>("fragment:one"))
+            .WithFallback((request, _) => new ValueTask<string>($"fragment fallback:{request}"));
+
+        var chain = Chain.Create<int, string>()
+            .Use(fragment)
+            .UseWhen(_ => true, (_, _) => new ValueTask<string>("trunk"))
+            .Build();
+
+        Assert.Equal("fragment fallback:3", await chain.ExecuteAsync(3));
+    }
+
+    [Fact]
+    public async Task Use_MergedBuilder_PreservesHandlerOrderAcrossTheSeam()
+    {
+        var log = new List<string>();
+
+        var fragment = Chain.Create<string, string>()
+            .Use(async (request, next, cancellationToken) =>
+            {
+                log.Add("fragment:before");
+                var response = await next(request, cancellationToken);
+                log.Add("fragment:after");
+                return response;
+            });
+
+        var chain = Chain.Create<string, string>()
+            .Use(async (request, next, cancellationToken) =>
+            {
+                log.Add("trunk:before");
+                var response = await next(request, cancellationToken);
+                log.Add("trunk:after");
+                return response;
+            })
+            .Use(fragment)
+            .WithFallback((request, _) => new ValueTask<string>(request))
+            .Build();
+
+        Assert.Equal("request", await chain.ExecuteAsync("request"));
+        Assert.Equal(["trunk:before", "fragment:before", "fragment:after", "trunk:after"], log);
+    }
+
+    [Fact]
+    public async Task Use_MergedBuilder_SnapshotsTheFragmentAtMergeTime()
+    {
+        var fragment = Chain.Create<int, string>()
+            .UseWhen(request => request == 1, (_, _) => new ValueTask<string>("fragment:one"));
+
+        var builder = Chain.Create<int, string>()
+            .Use(fragment)
+            .WithFallback((_, _) => new ValueTask<string>("trunk"));
+
+        fragment.UseWhen(request => request == 2, (_, _) => new ValueTask<string>("fragment:two"));
+
+        var chain = builder.Build();
+
+        Assert.Equal("fragment:one", await chain.ExecuteAsync(1));
+        Assert.Equal("trunk", await chain.ExecuteAsync(2));
+    }
+
+    [Fact]
+    public async Task Use_MergedBuilder_CanBeMergedIntoSeveralChains()
+    {
+        var fragment = Chain.Create<int, string>()
+            .UseWhen(request => request == 1, (_, _) => new ValueTask<string>("fragment:one"));
+
+        var first = Chain.Create<int, string>()
+            .Use(fragment)
+            .WithFallback((_, _) => new ValueTask<string>("first"))
+            .Build();
+
+        var second = Chain.Create<int, string>()
+            .Use(fragment)
+            .WithFallback((_, _) => new ValueTask<string>("second"))
+            .Build();
+
+        Assert.Equal("fragment:one", await first.ExecuteAsync(1));
+        Assert.Equal("fragment:one", await second.ExecuteAsync(1));
+        Assert.Equal("first", await first.ExecuteAsync(9));
+        Assert.Equal("second", await second.ExecuteAsync(9));
+    }
+
+    [Fact]
+    public async Task Use_BuilderMergedIntoItself_TerminatesAndKeepsTheSnapshot()
+    {
+        var builder = Chain.Create<int, string>()
+            .UseWhen(request => request == 1, (_, _) => new ValueTask<string>("one"));
+
+        builder.Use(builder);
+
+        var chain = builder.WithFallback((_, _) => new ValueTask<string>("fallback")).Build();
+
+        Assert.Equal(2, chain.Count);
+        Assert.Equal("one", await chain.ExecuteAsync(1));
+        Assert.Equal("fallback", await chain.ExecuteAsync(2));
+    }
+
+    [Fact]
+    public async Task Use_MergedChain_BehavesLikeTheMergedBuilder()
+    {
+        var fragment = Chain.Create<int, string>()
+            .UseWhen(request => request == 1, (_, _) => new ValueTask<string>("fragment:one"))
+            .Build();
+
+        var chain = Chain.Create<int, string>()
+            .Use(fragment)
+            .UseWhen(request => request == 2, (_, _) => new ValueTask<string>("trunk:two"))
+            .WithFallback((request, _) => new ValueTask<string>($"trunk fallback:{request}"))
+            .Build();
+
+        Assert.Equal(2, chain.Count);
+        Assert.Equal("fragment:one", await chain.ExecuteAsync(1));
+        Assert.Equal("trunk:two", await chain.ExecuteAsync(2));
+        Assert.Equal("trunk fallback:3", await chain.ExecuteAsync(3));
+        await Assert.ThrowsAsync<UnhandledRequestException>(async () => await fragment.ExecuteAsync(3));
+    }
+
+    [Fact]
+    public async Task Use_MergedChain_WithOwnFallback_DoesNotFallThroughToTheTrunk()
+    {
+        var fragment = Chain.Create<int, string>()
+            .UseWhen(request => request == 1, (_, _) => new ValueTask<string>("fragment:one"))
+            .WithFallback((request, _) => new ValueTask<string>($"fragment fallback:{request}"))
+            .Build();
+
+        var chain = Chain.Create<int, string>()
+            .Use(fragment)
+            .UseWhen(_ => true, (_, _) => new ValueTask<string>("trunk"))
+            .Build();
+
+        Assert.Equal("fragment fallback:3", await chain.ExecuteAsync(3));
+    }
+
+    [Fact]
+    public async Task Use_CustomChainImplementation_TerminatesTheChain()
+    {
+        var chain = Chain.Create<int, string>()
+            .Use(new ConstantChain())
+            .UseWhen(_ => true, (_, _) => new ValueTask<string>("trunk"))
+            .Build();
+
+        Assert.Equal(2, chain.Count);
+        Assert.Equal("constant:5", await chain.ExecuteAsync(5));
+    }
+
+    [Fact]
+    public void Use_NullMergeArguments_Throw()
+    {
+        var builder = Chain.Create<int, string>();
+
+        Assert.Throws<ArgumentNullException>(() => builder.Use((ChainBuilder<int, string>)null!));
+        Assert.Throws<ArgumentNullException>(() => builder.Use((IChain<int, string>)null!));
+    }
+
+    private sealed class ConstantChain : IChain<int, string>
+    {
+        public int Count => 1;
+
+        public ValueTask<string> ExecuteAsync(int request, CancellationToken cancellationToken = default)
+            => new($"constant:{request}");
+    }
+
     private sealed class UpperCaseHandler : HandlerBase<string, string>
     {
         protected override bool CanHandle(string request) => request.All(char.IsLetter);
