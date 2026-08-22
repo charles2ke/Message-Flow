@@ -14,7 +14,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Dependency review requires the Dependency graph feature to be enabled for
+      # the repository. When it is disabled the action errors out, which would
+      # otherwise fail every pull request. Vulnerable packages are also checked by
+      # the `dotnet list package --vulnerable` step in the CI workflow.
       - name: Dependency review
+        id: dependency-review
+        continue-on-error: true
         uses: actions/dependency-review-action@v4
         with:
           fail-on-severity: low
+
+      - name: Report dependency review outcome
+        if: steps.dependency-review.outcome == 'failure'
+        run: |
+          echo "::warning::Dependency review reported a failure. Check the step log above: it either found vulnerable dependencies, or the Dependency graph is not enabled for this repository (Settings > Code security and analysis)."
