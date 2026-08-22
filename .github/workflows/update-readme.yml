@@ -31,13 +31,22 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Restore
+        run: dotnet restore MessageFlow.slnx
+
+      - name: Build
+        run: dotnet build MessageFlow.slnx --configuration Release --no-restore
+
       - name: Produce coverage report
         run: |
           dotnet test tests/MessageFlow.Tests/MessageFlow.Tests.csproj \
             --configuration Release \
+            --no-build \
             -p:CollectCoverage=true \
             -p:CoverletOutputFormat=cobertura \
-            -p:CoverletOutput=../../artifacts/coverage/
+            -p:CoverletOutput=../../artifacts/coverage/ \
+            -p:Threshold=100 \
+            -p:ThresholdType="line%2cbranch%2cmethod"
 
       - name: Check README on pull requests
         if: github.event_name == 'pull_request'
