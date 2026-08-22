@@ -2,6 +2,7 @@ using MessageFlow.Samples;
 
 namespace MessageFlow.Tests;
 
+[Collection(DiagnosticsCollection.Name)]
 public sealed class SamplesTests
 {
     [Fact]
@@ -207,6 +208,30 @@ public sealed class SamplesTests
     }
 
     [Fact]
+    public async Task DiagnosticsSample_LogsAndTracesEveryRequest()
+    {
+        await using var output = new StringWriter();
+
+        var entries = await DiagnosticsSample.RunAsync(output);
+
+        Assert.Equal(4, entries.Count);
+        Assert.All(entries, entry => Assert.StartsWith("Information: ", entry, StringComparison.Ordinal));
+
+        var text = output.ToString();
+        Assert.Contains("ping => pong", text, StringComparison.Ordinal);
+        Assert.Contains("hello => echo: hello", text, StringComparison.Ordinal);
+        Assert.Contains("activity: MessageFlow.Samples.Diagnostics:Ok", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task DiagnosticsSample_RunAsync_RequiresOutput()
+        => await Assert.ThrowsAsync<ArgumentNullException>(async () => await DiagnosticsSample.RunAsync(null!));
+
+    [Fact]
+    public void DiagnosticsSample_BuildChain_RequiresLogger()
+        => Assert.Throws<ArgumentNullException>(() => DiagnosticsSample.BuildChain(null!));
+
+    [Fact]
     public async Task Program_RunAllAsync_RunsEverySample()
     {
         await using var output = new StringWriter();
@@ -221,6 +246,7 @@ public sealed class SamplesTests
         Assert.Contains("== unhandled requests ==", text, StringComparison.Ordinal);
         Assert.Contains("== cancellation ==", text, StringComparison.Ordinal);
         Assert.Contains("== retry ==", text, StringComparison.Ordinal);
+        Assert.Contains("== diagnostics ==", text, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -44,5 +44,8 @@ public static class Program
 
         await output.WriteLineAsync("== retry ==").ConfigureAwait(false);
         await RetrySample.RunAsync(output, cancellationToken).ConfigureAwait(false);
+
+        await output.WriteLineAsync("== diagnostics ==").ConfigureAwait(false);
+        await DiagnosticsSample.RunAsync(output, cancellationToken).ConfigureAwait(false);
     }
 }
