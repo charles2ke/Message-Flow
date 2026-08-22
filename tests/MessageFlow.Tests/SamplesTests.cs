@@ -2,6 +2,7 @@ using MessageFlow.Samples;
 
 namespace MessageFlow.Tests;
 
+[Collection(DiagnosticsCollection.Name)]
 public sealed class SamplesTests
 {
     [Fact]

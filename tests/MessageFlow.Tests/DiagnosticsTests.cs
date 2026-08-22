@@ -2,6 +2,7 @@ using System.Diagnostics;
 
 namespace MessageFlow.Tests;
 
+[Collection(DiagnosticsCollection.Name)]
 public sealed class DiagnosticsTests
 {
     [Fact]

@@ -40,7 +40,7 @@ public static class DiagnosticsSample
     {
         ArgumentNullException.ThrowIfNull(output);
 
-        var logger = new ConsoleChainLogger();
+        var logger = new CollectingChainLogger();
         var activityNames = new List<string>();
 
         using var listener = new ActivityListener
@@ -74,9 +74,9 @@ public static class DiagnosticsSample
     }
 
     /// <summary>
-    /// A minimal <see cref="IChainLogger"/> collecting the entries in memory.
+    /// A minimal <see cref="IChainLogger"/> collecting the formatted entries in memory.
     /// </summary>
-    private sealed class ConsoleChainLogger : IChainLogger
+    private sealed class CollectingChainLogger : IChainLogger
     {
         public List<string> Entries { get; } = [];
 

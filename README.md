@@ -194,10 +194,19 @@ lines of code:
 ```csharp
 public sealed class ChainLoggerAdapter(ILogger logger) : IChainLogger
 {
-    public bool IsEnabled(ChainLogLevel level) => logger.IsEnabled((LogLevel)level);
+    public bool IsEnabled(ChainLogLevel level) => logger.IsEnabled(Map(level));
 
     public void Log(ChainLogLevel level, string message, Exception? exception)
-        => logger.Log((LogLevel)level, exception, "{Message}", message);
+        => logger.Log(Map(level), exception, "{Message}", message);
+
+    private static LogLevel Map(ChainLogLevel level) => level switch
+    {
+        ChainLogLevel.Trace => LogLevel.Trace,
+        ChainLogLevel.Debug => LogLevel.Debug,
+        ChainLogLevel.Information => LogLevel.Information,
+        ChainLogLevel.Warning => LogLevel.Warning,
+        _ => LogLevel.Error,
+    };
 }
 ```
 
