@@ -153,6 +153,117 @@ public sealed class ChainBuilderTests
         Assert.Throws<ArgumentNullException>(() => builder.WithFallback(null!));
     }
 
+    [Fact]
+    public async Task UseBranch_MatchingRequest_EntersTheBranch()
+    {
+        var chain = Chain.Create<int, string>()
+            .UseBranch(
+                request => request < 0,
+                branch => branch.UseWhen(request => request == -1, (_, _) => new ValueTask<string>("minus one")))
+            .WithFallback((_, _) => new ValueTask<string>("trunk"))
+            .Build();
+
+        Assert.Equal(1, chain.Count);
+        Assert.Equal("minus one", await chain.ExecuteAsync(-1));
+    }
+
+    [Fact]
+    public async Task UseBranch_NonMatchingRequest_SkipsTheBranch()
+    {
+        var entered = false;
+
+        var chain = Chain.Create<int, string>()
+            .UseBranch(
+                request => request < 0,
+                branch => branch.Use((_, _, _) =>
+                {
+                    entered = true;
+                    return new ValueTask<string>("branch");
+                }))
+            .WithFallback((_, _) => new ValueTask<string>("trunk"))
+            .Build();
+
+        Assert.Equal("trunk", await chain.ExecuteAsync(1));
+        Assert.False(entered);
+    }
+
+    [Fact]
+    public async Task UseBranch_UnhandledByTheBranch_FallsThroughToTheTrunk()
+    {
+        var chain = Chain.Create<int, string>()
+            .UseBranch(
+                request => request < 0,
+                branch => branch.UseWhen(request => request == -1, (_, _) => new ValueTask<string>("minus one")))
+            .UseWhen(request => request < 0, (request, _) => new ValueTask<string>($"trunk:{request}"))
+            .Build();
+
+        Assert.Equal("trunk:-2", await chain.ExecuteAsync(-2));
+    }
+
+    [Fact]
+    public async Task UseBranch_WithOwnFallback_DoesNotFallThroughToTheTrunk()
+    {
+        var chain = Chain.Create<int, string>()
+            .UseBranch(
+                request => request < 0,
+                branch => branch
+                    .UseWhen(request => request == -1, (_, _) => new ValueTask<string>("minus one"))
+                    .WithFallback((request, _) => new ValueTask<string>($"branch:{request}")))
+            .WithFallback((request, _) => new ValueTask<string>($"trunk:{request}"))
+            .Build();
+
+        Assert.Equal("branch:-2", await chain.ExecuteAsync(-2));
+        Assert.Equal("trunk:2", await chain.ExecuteAsync(2));
+    }
+
+    [Fact]
+    public async Task UseBranch_PropagatesCancellationTokenIntoTheBranch()
+    {
+        using var cts = new CancellationTokenSource();
+
+        var chain = Chain.Create<string, bool>()
+            .UseBranch(
+                _ => true,
+                branch => branch.Use((_, _, cancellationToken) =>
+                    new ValueTask<bool>(cancellationToken.IsCancellationRequested)))
+            .WithFallback((_, _) => new ValueTask<bool>(false))
+            .Build();
+
+        Assert.False(await chain.ExecuteAsync("x", cts.Token));
+
+        cts.Cancel();
+        Assert.True(await chain.ExecuteAsync("x", cts.Token));
+    }
+
+    [Fact]
+    public void UseBranch_ConfiguresTheBranchOnce()
+    {
+        var configureCount = 0;
+
+        var builder = Chain.Create<int, string>()
+            .UseBranch(
+                _ => true,
+                branch =>
+                {
+                    configureCount++;
+                    branch.Use((request, _, _) => new ValueTask<string>($"branch:{request}"));
+                });
+
+        builder.Build();
+        builder.Build();
+
+        Assert.Equal(1, configureCount);
+    }
+
+    [Fact]
+    public void UseBranch_NullArguments_Throw()
+    {
+        var builder = Chain.Create<int, string>();
+
+        Assert.Throws<ArgumentNullException>(() => builder.UseBranch(null!, _ => { }));
+        Assert.Throws<ArgumentNullException>(() => builder.UseBranch(_ => true, null!));
+    }
+
     private sealed class UpperCaseHandler : HandlerBase<string, string>
     {
         protected override bool CanHandle(string request) => request.All(char.IsLetter);
