@@ -45,6 +45,7 @@ flowchart LR
 - Three ways to add a link: an `IHandler<,>` implementation, the `HandlerBase<,>` convenience class,
   or an inline lambda.
 - Middleware-style handlers can run code before *and* after the rest of the chain.
+- Nested branches via `UseBranch`, with automatic fall-through back to the parent chain.
 - Optional fallback for unhandled requests.
 
 ## Installation
@@ -101,6 +102,34 @@ var chain = Chain.Create<string, string>()
     .WithFallback((request, _) => new ValueTask<string>(request))
     .Build();
 ```
+
+### Branching
+
+`UseBranch` nests a sub-chain that only runs when the predicate matches. When the predicate does not
+match, the request skips the branch; when it matches but no handler of the branch accepts the
+request, the request falls through to the next handler of the parent chain:
+
+```csharp
+var chain = Chain.Create<Ticket, string>()
+    .UseBranch(ticket => ticket.Kind == TicketKind.Billing, branch => branch
+        .Use(new RefundHandler())
+        .Use(new InvoiceHandler()))
+    .Use(new EscalationHandler()) // reached by billing tickets the branch did not accept
+    .WithFallback((ticket, _) => new ValueTask<string>($"queued:{ticket.Id}"))
+    .Build();
+```
+
+Give the branch its own fallback to stop that fall-through and terminate inside the branch instead:
+
+```csharp
+.UseBranch(ticket => ticket.Kind == TicketKind.Billing, branch => branch
+    .Use(new RefundHandler())
+    .WithFallback((ticket, _) => new ValueTask<string>($"billing backlog:{ticket.Id}")))
+```
+
+The branch is composed at `Build()` time alongside the rest of the pipeline, so it costs a single
+extra delegate call per request. A branch counts as one handler towards `IChain.Count`, no matter
+how many handlers it contains.
 
 ## Samples
 
