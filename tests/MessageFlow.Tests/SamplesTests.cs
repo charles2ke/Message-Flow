@@ -60,6 +60,47 @@ public sealed class SamplesTests
     }
 
     [Fact]
+    public async Task MergedChainsSample_RoutesOrEscalatesEveryTicket()
+    {
+        await using var output = new StringWriter();
+
+        var results = await MergedChainsSample.RunAsync(output);
+
+        Assert.Equal(
+            [
+                "refund issued for ticket 11",
+                "reset link sent for ticket 12",
+                "escalated ticket 13 to a human",
+            ],
+            results);
+    }
+
+    [Fact]
+    public async Task MergedChainsSample_CountsEachFragmentAsOneHandler()
+    {
+        var chain = MergedChainsSample.BuildChain();
+
+        Assert.Equal(2, chain.Count);
+        Assert.Equal("refund issued for ticket 7", await chain.ExecuteAsync(new Ticket(7, TicketKind.Refund)));
+    }
+
+    [Fact]
+    public async Task MergedChainsSample_FragmentsCanBeBuiltOnTheirOwn()
+    {
+        var billing = MergedChainsSample.BuildBillingFragment().Build();
+        var accounts = MergedChainsSample.BuildAccountsFragment().Build();
+
+        Assert.Equal("refund issued for ticket 8", await billing.ExecuteAsync(new Ticket(8, TicketKind.Refund)));
+        Assert.Equal(
+            "reset link sent for ticket 9",
+            await accounts.ExecuteAsync(new Ticket(9, TicketKind.PasswordReset)));
+    }
+
+    [Fact]
+    public async Task MergedChainsSample_RunAsync_RequiresOutput()
+        => await Assert.ThrowsAsync<ArgumentNullException>(async () => await MergedChainsSample.RunAsync(null!));
+
+    [Fact]
     public async Task MiddlewareSample_LogsBeforeAndAfterTheInnerChain()
     {
         await using var output = new StringWriter();
@@ -175,6 +216,7 @@ public sealed class SamplesTests
         var text = output.ToString();
         Assert.Contains("== quick start ==", text, StringComparison.Ordinal);
         Assert.Contains("== support tickets ==", text, StringComparison.Ordinal);
+        Assert.Contains("== merged chains ==", text, StringComparison.Ordinal);
         Assert.Contains("== middleware ==", text, StringComparison.Ordinal);
         Assert.Contains("== unhandled requests ==", text, StringComparison.Ordinal);
         Assert.Contains("== cancellation ==", text, StringComparison.Ordinal);

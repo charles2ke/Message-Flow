@@ -30,6 +30,9 @@ public static class Program
         await output.WriteLineAsync("== support tickets ==").ConfigureAwait(false);
         await SupportTicketSample.RunAsync(output, cancellationToken).ConfigureAwait(false);
 
+        await output.WriteLineAsync("== merged chains ==").ConfigureAwait(false);
+        await MergedChainsSample.RunAsync(output, cancellationToken).ConfigureAwait(false);
+
         await output.WriteLineAsync("== middleware ==").ConfigureAwait(false);
         await MiddlewareSample.RunAsync(output, cancellationToken).ConfigureAwait(false);
 

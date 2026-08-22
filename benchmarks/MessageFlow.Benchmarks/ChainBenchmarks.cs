@@ -11,6 +11,7 @@ namespace MessageFlow.Benchmarks;
 public class ChainBenchmarks
 {
     private IChain<int, int> _chain = null!;
+    private IChain<int, int> _mergedChain = null!;
     private LinkedHandler _linked = null!;
 
     /// <summary>
@@ -34,6 +35,18 @@ public class ChainBenchmarks
 
         _chain = builder.WithFallback((request, _) => new ValueTask<int>(-request)).Build();
 
+        var fragment = Chain.Create<int, int>();
+        for (var i = 0; i < HandlerCount; i++)
+        {
+            var index = i;
+            fragment.UseWhen(request => request == index, (request, _) => new ValueTask<int>(request));
+        }
+
+        _mergedChain = Chain.Create<int, int>()
+            .Use(fragment)
+            .WithFallback((request, _) => new ValueTask<int>(-request))
+            .Build();
+
         LinkedHandler? head = null;
         for (var i = HandlerCount - 1; i >= 0; i--)
         {
@@ -49,6 +62,13 @@ public class ChainBenchmarks
     /// <returns>The response.</returns>
     [Benchmark(Baseline = true)]
     public ValueTask<int> PrecompiledChain() => _chain.ExecuteAsync(HandlerCount - 1);
+
+    /// <summary>
+    /// Executes the same request through a chain whose handlers were merged in from another builder.
+    /// </summary>
+    /// <returns>The response.</returns>
+    [Benchmark]
+    public ValueTask<int> MergedChain() => _mergedChain.ExecuteAsync(HandlerCount - 1);
 
     /// <summary>
     /// Executes the same request through a classic linked-list chain.
