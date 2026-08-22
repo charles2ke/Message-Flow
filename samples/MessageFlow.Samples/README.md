@@ -10,6 +10,7 @@ dotnet run --project samples/MessageFlow.Samples/MessageFlow.Samples.csproj
 | --- | --- |
 | [`QuickStartSample`](QuickStartSample.cs) | Inline `UseWhen` predicates plus a `WithFallback` terminal step. |
 | [`SupportTicketSample`](SupportTicketSample.cs) | Reusable `HandlerBase<,>` handlers routing support tickets, escalating the rest. |
+| [`MergedChainsSample`](MergedChainsSample.cs) | Merging two independently authored chain fragments with `Use(ChainBuilder<,>)`. |
 | [`MiddlewareSample`](MiddlewareSample.cs) | Middleware-style handlers that run code before *and* after the rest of the chain. |
 | [`UnhandledRequestSample`](UnhandledRequestSample.cs) | `UnhandledRequestException` versus a configured fallback. |
 | [`CancellationSample`](CancellationSample.cs) | `CancellationToken` propagation through every handler. |

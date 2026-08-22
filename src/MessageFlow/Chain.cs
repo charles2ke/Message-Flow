@@ -10,11 +10,21 @@ public sealed class Chain<TRequest, TResponse> : IChain<TRequest, TResponse>
 {
     private readonly NextHandler<TRequest, TResponse> _pipeline;
 
-    internal Chain(NextHandler<TRequest, TResponse> pipeline, int count)
+    internal Chain(
+        Func<NextHandler<TRequest, TResponse>, NextHandler<TRequest, TResponse>> composer,
+        int count)
     {
-        _pipeline = pipeline;
+        Composer = composer;
         Count = count;
+        _pipeline = composer(static (_, _) => throw new UnhandledRequestException());
     }
+
+    /// <summary>
+    /// Gets the open composition of the chain: it turns the step invoked when no handler of this
+    /// chain accepted the request into the executable pipeline. It allows the chain to be merged
+    /// into another chain without re-running its builder.
+    /// </summary>
+    internal Func<NextHandler<TRequest, TResponse>, NextHandler<TRequest, TResponse>> Composer { get; }
 
     /// <inheritdoc />
     public int Count { get; }

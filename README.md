@@ -46,6 +46,7 @@ flowchart LR
   or an inline lambda.
 - Middleware-style handlers can run code before *and* after the rest of the chain.
 - Nested branches via `UseBranch`, with automatic fall-through back to the parent chain.
+- Merging of separately authored chain fragments — or already built chains — via `Use`.
 - Optional fallback for unhandled requests.
 
 ## Installation
@@ -131,11 +132,56 @@ The branch is composed at `Build()` time alongside the rest of the pipeline, so 
 extra delegate call per request. A branch counts as one handler towards `IChain.Count`, no matter
 how many handlers it contains.
 
+### Merging chains
+
+`Use` also accepts another `ChainBuilder<,>`, so chain fragments authored independently — by
+different teams, modules or DI registrations — can be glued together. The merged handlers are
+composed against the continuation of the parent chain, so requests they do not accept keep flowing:
+
+```csharp
+static ChainBuilder<Ticket, string> BillingFragment() => Chain.Create<Ticket, string>()
+    .Use(new RefundHandler())
+    .Use(new InvoiceHandler());
+
+var chain = Chain.Create<Ticket, string>()
+    .Use(BillingFragment())
+    .Use(new EscalationHandler()) // reached by tickets the fragment did not accept
+    .WithFallback((ticket, _) => new ValueTask<string>($"queued:{ticket.Id}"))
+    .Build();
+```
+
+An already built chain can be merged the same way:
+
+```csharp
+IChain<Ticket, string> billing = BillingFragment().Build();
+
+var chain = Chain.Create<Ticket, string>()
+    .Use(billing)
+    .Use(new EscalationHandler())
+    .Build();
+```
+
+Chains built by `Build()` are re-composed into the parent, so an unhandled request falls through
+instead of throwing `UnhandledRequestException` — no exceptions are used for control flow. A custom
+`IChain<,>` implementation cannot be re-composed, so it is executed as-is and terminates the chain.
+
+Two rules are worth remembering:
+
+- **Fallback precedence** — if the merged fragment configures its own `WithFallback`, that fallback
+  becomes the terminal step of the merged segment and the remaining handlers of the parent chain are
+  never reached. This matches `UseBranch`.
+- **Count** — a merged fragment counts as one handler towards `IChain.Count`, no matter how many
+  handlers it contains.
+
+Merging a builder snapshots its handlers, so later changes to the fragment do not affect chains it
+was already merged into, the same fragment can be merged into several chains, and merging a builder
+into itself is safe.
+
 ## Samples
 
 The [`samples/MessageFlow.Samples`](samples/MessageFlow.Samples/README.md) project contains runnable
-examples for quick start routing, `HandlerBase<,>` handlers, middleware, fallbacks, cancellation and
-a custom retry handler:
+examples for quick start routing, `HandlerBase<,>` handlers, merged chain fragments, middleware,
+fallbacks, cancellation and a custom retry handler:
 
 ```bash
 dotnet run --project samples/MessageFlow.Samples/MessageFlow.Samples.csproj
