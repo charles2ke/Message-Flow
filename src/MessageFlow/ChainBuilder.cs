@@ -132,7 +132,7 @@ public sealed class ChainBuilder<TRequest, TResponse>
     /// </summary>
     /// <param name="terminal">The step invoked when the configured handlers do not accept the request.</param>
     /// <returns>The composed pipeline.</returns>
-    internal NextHandler<TRequest, TResponse> BuildPipeline(NextHandler<TRequest, TResponse> terminal)
+    private NextHandler<TRequest, TResponse> BuildPipeline(NextHandler<TRequest, TResponse> terminal)
     {
         var fallback = _fallback;
         var pipeline = fallback is null
