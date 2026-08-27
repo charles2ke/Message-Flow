@@ -225,7 +225,7 @@ public final class ChainBuilder<T, R> {
         return use((request, nextHandler, cancellationToken) -> {
             var span = Objects.requireNonNull(
                     tracer.startSpan(spanName, requestType, responseType),
-                    "span");
+                    "ChainTracer.startSpan must not return null");
 
             CompletionStage<R> stage;
             try {
