@@ -82,7 +82,7 @@ public final class ChainBuilder<T, R> {
         if (chain instanceof ComposedChain<T, R> composed) {
             steps.add(composed.composer());
         } else {
-            steps.add(nextHandler -> chain::execute);
+            steps.add(ignoredNextHandler -> chain::execute);
         }
 
         return this;
