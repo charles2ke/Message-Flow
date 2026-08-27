@@ -1,5 +1,6 @@
 package io.github.messageflow;
 
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.function.UnaryOperator;
@@ -41,6 +42,7 @@ public final class ComposedChain<T, R> implements Chain<T, R> {
 
     @Override
     public CompletionStage<R> execute(T request, CancellationToken cancellationToken) {
+        Objects.requireNonNull(cancellationToken, "cancellationToken");
         return pipeline.handle(request, cancellationToken);
     }
 
