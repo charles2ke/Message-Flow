@@ -59,6 +59,12 @@ The library targets `net8.0`. Add a project reference:
 dotnet add reference src/MessageFlow/MessageFlow.csproj
 ```
 
+A Java port of the same library lives in [`java`](java/README.md) and targets Java 17:
+
+```bash
+cd java && mvn install
+```
+
 ## Quick start
 
 ```csharp
@@ -264,6 +270,7 @@ dotnet run --project samples/MessageFlow.Samples/MessageFlow.Samples.csproj
 | Path | Description |
 | --- | --- |
 | `src/MessageFlow` | The library. |
+| `java` | The Java port of the library, see [java](java/README.md). |
 | `samples/MessageFlow.Samples` | Runnable examples, see [samples/MessageFlow.Samples](samples/MessageFlow.Samples/README.md). |
 | `tests/MessageFlow.Tests` | xUnit tests, gated at 100% line, branch and method coverage. |
 | `benchmarks/MessageFlow.Benchmarks` | BenchmarkDotNet performance benchmarks. |
@@ -282,6 +289,13 @@ dotnet test tests/MessageFlow.Tests/MessageFlow.Tests.csproj \
 
 The build treats warnings (including .NET analyzer diagnostics) as errors, and the test run fails if
 coverage drops below 100%.
+
+The Java port is built and tested with Maven:
+
+```bash
+cd java
+mvn verify
+```
 
 ## Performance
 
