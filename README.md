@@ -53,17 +53,19 @@ flowchart LR
 
 ## Installation
 
-The library targets `net8.0`. Add a project reference:
+The library targets `net8.0`. Install it from NuGet:
+
+```bash
+dotnet add package MessageFlow
+```
+
+To build from source instead, clone the repository and add a project reference:
 
 ```bash
 dotnet add reference src/MessageFlow/MessageFlow.csproj
 ```
 
-A Java port of the same library lives in [`java`](java/README.md) and targets Java 17:
-
-```bash
-cd java && mvn install
-```
+A Java port of the same library lives in [`java`](java/README.md) and targets Java 17.
 
 ## Quick start
 

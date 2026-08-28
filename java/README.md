@@ -8,14 +8,7 @@ The library is dependency-free and targets Java 17.
 
 ## Installation
 
-Build and install the artifact locally:
-
-```bash
-cd java
-mvn install
-```
-
-Then depend on it:
+Add the package from Maven Central:
 
 ```xml
 <dependency>
@@ -23,6 +16,13 @@ Then depend on it:
   <artifactId>messageflow</artifactId>
   <version>1.0.0</version>
 </dependency>
+```
+
+To build from source instead, clone the repository and install the artifact locally:
+
+```bash
+cd java
+mvn install
 ```
 
 ## Quick start
