@@ -22,7 +22,7 @@ jobs:
           dotnet-version: 8.0.x
 
       - name: Pack
-        run: dotnet pack src/MessageFlow/MessageFlow.csproj --configuration Release --output artifacts
+        run: dotnet pack src/MessageFlow/MessageFlow.csproj --configuration Release --output artifacts -p:PackageVersion="${GITHUB_REF_NAME#v}"
 
       - name: Publish to NuGet
         if: env.NUGET_API_KEY != ''
