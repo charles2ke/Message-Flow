@@ -7,6 +7,10 @@ through the chain until a handler accepts it; unhandled requests either hit a co
 raise `UnhandledRequestException`. The pipeline is composed once at build time, so executing a
 request is just a delegate invocation.
 
+[![NuGet](https://img.shields.io/nuget/v/MessageFlow)](https://www.nuget.org/packages/MessageFlow)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.messageflow/messageflow)](https://central.sonatype.com/artifact/io.github.messageflow/messageflow)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
+
 <!-- BEGIN AUTO-GENERATED: coverage -->
 ![line coverage](https://img.shields.io/badge/line%20coverage-100%25-brightgreen)
 ![branch coverage](https://img.shields.io/badge/branch%20coverage-100%25-brightgreen)
@@ -308,6 +312,20 @@ dotnet run --project benchmarks/MessageFlow.Benchmarks/MessageFlow.Benchmarks.cs
 The benchmark compares the pre-compiled chain against a classic linked-list chain of responsibility
 for chains of 1, 5 and 20 handlers, and reports allocations via `MemoryDiagnoser`. Benchmarks also run
 in CI and their results are uploaded as a build artifact.
+
+## Releases and versioning
+
+The project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html); notable changes are
+recorded in [CHANGELOG.md](CHANGELOG.md).
+
+Pushing a `v*` tag runs `.github/workflows/release.yml`, which packs `src/MessageFlow` with the tag
+version and pushes the package and symbols to NuGet. The Java artifact is published to Maven Central
+from the `java` module with the `central` Maven profile:
+
+```bash
+cd java
+mvn -P central deploy
+```
 
 ## Security
 
