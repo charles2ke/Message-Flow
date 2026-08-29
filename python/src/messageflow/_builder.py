@@ -172,8 +172,7 @@ class ChainBuilder(Generic[T, R]):
                 or inspect.iscoroutinefunction(handler.__call__)
             ):
                 raise TypeError(
-                    "handler must be an async callable with 3 parameters "
-                    "(request, next_handler, cancellation_token)"
+                    "handler must be an async callable (request, next_handler, cancellation_token)"
                 )
 
             def callable_composer(next_handler: NextHandler[T, R]) -> NextHandler[T, R]:
