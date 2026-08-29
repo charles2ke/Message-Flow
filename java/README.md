@@ -12,7 +12,7 @@ Add the package from Maven Central:
 
 ```xml
 <dependency>
-  <groupId>io.github.messageflow</groupId>
+  <groupId>io.github.charles2ke</groupId>
   <artifactId>messageflow</artifactId>
   <version>1.0.0</version>
 </dependency>
