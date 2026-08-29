@@ -36,4 +36,6 @@ Then open <http://localhost:8080/>.
 | `public/styles.css` | The styles of the landing page. |
 | `build.mjs` | Copies `public`, Swagger UI and the compiled JavaScript port into `_site`. |
 
-`.github/workflows/pages.yml` runs the same build and deploys `_site` on every push to `main`.
+`.github/workflows/pages.yml` runs the same build and deploys `_site` on every push to `main`. The
+deployment requires GitHub Pages to be enabled for the repository with **GitHub Actions** selected as
+the source (Settings → Pages); the workflow token cannot create the Pages site on its own.
