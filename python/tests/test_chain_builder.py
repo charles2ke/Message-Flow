@@ -552,16 +552,16 @@ class TestChainBuilder:
         assert len(logger.entries) == 2
         assert logger.entries[1]["level"] == ChainLogLevel.ERROR
 
-    def test_use_with_non_async_non_coroutine_wrong_signature(self):
-        """Test that use() with non-async callable with wrong signature raises."""
+    def test_use_with_non_async_callable(self):
+        """Test that use() with a synchronous callable raises."""
 
-        def non_async_handler(x):  # Only 1 param
+        def non_async_handler(request, next_handler, token):
             return "handled"
 
         with pytest.raises(TypeError) as exc_info:
             Chain.create().use(non_async_handler)
 
-        assert "handler must be a callable with 3 parameters" in str(exc_info.value)
+        assert "handler must be an async callable" in str(exc_info.value)
 
     def test_use_with_invalid_type(self):
         """Test that use() with an invalid type raises."""

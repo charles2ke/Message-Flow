@@ -166,15 +166,15 @@ class ChainBuilder(Generic[T, R]):
 
         # Check if it's a callable
         if callable(handler):
-            # Verify it's async and has the right signature
-            if not (inspect.iscoroutinefunction(handler) or inspect.isasyncgenfunction(handler)):
-                # Try to call it to see if it's an async callable
-                sig = inspect.signature(handler)
-                if len(sig.parameters) != 3:
-                    raise TypeError(
-                        "handler must be a callable with 3 parameters "
-                        "(request, next_handler, cancellation_token)"
-                    )
+            # Only coroutine callables can be awaited by the composed chain
+            if not (
+                inspect.iscoroutinefunction(handler)
+                or inspect.iscoroutinefunction(handler.__call__)
+            ):
+                raise TypeError(
+                    "handler must be an async callable with 3 parameters "
+                    "(request, next_handler, cancellation_token)"
+                )
 
             def callable_composer(next_handler: NextHandler[T, R]) -> NextHandler[T, R]:
                 async def wrapper(request: T, token: CancellationToken) -> R:
