@@ -381,7 +381,7 @@ If a manual Java publish is ever needed, run:
 
 ```bash
 cd java
-mvn -P central deploy -Drevision=<version>
+mvn -P central deploy -Drevision=1.2.3
 ```
 
 The Python distribution is published to PyPI and the JavaScript package to npm from their own
