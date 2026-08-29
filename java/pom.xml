@@ -4,9 +4,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>io.github.messageflow</groupId>
+  <groupId>io.github.charles2ke</groupId>
   <artifactId>messageflow</artifactId>
-  <version>1.0.0</version>
+  <version>${revision}</version>
   <packaging>jar</packaging>
 
   <name>MessageFlow</name>
@@ -37,6 +37,7 @@
   </scm>
 
   <properties>
+    <revision>1.0.0</revision>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.release>17</maven.compiler.release>
     <junit.version>5.11.4</junit.version>

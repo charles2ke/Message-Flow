@@ -13,7 +13,7 @@ language can be transcribed into any other one. Try them out in the
 JavaScript port running in your browser.
 
 [![NuGet](https://img.shields.io/nuget/v/MessageFlow)](https://www.nuget.org/packages/MessageFlow)
-[![Maven Central](https://img.shields.io/maven-central/v/io.github.messageflow/messageflow)](https://central.sonatype.com/artifact/io.github.messageflow/messageflow)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.charles2ke/messageflow)](https://central.sonatype.com/artifact/io.github.charles2ke/messageflow)
 [![PyPI](https://img.shields.io/pypi/v/messageflow)](https://pypi.org/project/messageflow/)
 [![npm](https://img.shields.io/npm/v/messageflow)](https://www.npmjs.com/package/messageflow)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
@@ -81,7 +81,7 @@ The other ports are installed with their own package manager:
 | Language | Package | Install | Documentation |
 | --- | --- | --- | --- |
 | C# (.NET 8) | `MessageFlow` | `dotnet add package MessageFlow` | this file |
-| Java 17 | `io.github.messageflow:messageflow` | Maven or Gradle dependency | [`java`](java/README.md) |
+| Java 17 | `io.github.charles2ke:messageflow` | Maven or Gradle dependency | [`java`](java/README.md) |
 | Python 3.9+ | `messageflow` | `pip install messageflow` | [`python`](python/README.md) |
 | Node 20+ | `messageflow` | `npm install messageflow` | [`node`](node/README.md) |
 
@@ -372,13 +372,16 @@ in CI and their results are uploaded as a build artifact.
 The project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html); notable changes are
 recorded in [CHANGELOG.md](CHANGELOG.md).
 
-Pushing a `v*` tag runs `.github/workflows/release.yml`, which packs `src/MessageFlow` with the tag
-version and pushes the package and symbols to NuGet. The Java artifact is published to Maven Central
-from the `java` module with the `central` Maven profile:
+Pushing a `v*` tag runs `.github/workflows/release.yml`: it packs `src/MessageFlow` with the tag
+version and pushes the package and symbols to NuGet, and also publishes the Java artifact
+`io.github.charles2ke:messageflow` to Maven Central from the `java` module with the `central`
+profile.
+
+If a manual Java publish is ever needed, run:
 
 ```bash
 cd java
-mvn -P central deploy
+mvn -P central deploy -Drevision=1.2.3
 ```
 
 The Python distribution is published to PyPI and the JavaScript package to npm from their own

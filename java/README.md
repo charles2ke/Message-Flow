@@ -12,11 +12,14 @@ Add the package from Maven Central:
 
 ```xml
 <dependency>
-  <groupId>io.github.messageflow</groupId>
+  <groupId>io.github.charles2ke</groupId>
   <artifactId>messageflow</artifactId>
   <version>1.0.0</version>
 </dependency>
 ```
+
+The Maven `groupId` (`io.github.charles2ke`) differs from the Java package namespace
+(`io.github.messageflow`) used in the examples below; both are correct.
 
 To build from source instead, clone the repository and install the artifact locally:
 

@@ -22,8 +22,8 @@ const LANGUAGES = [
   },
   {
     language: "Java",
-    package: "io.github.messageflow:messageflow",
-    install: "mvn dependency:get -Dartifact=io.github.messageflow:messageflow:1.0.0",
+    package: "io.github.charles2ke:messageflow",
+    install: "mvn dependency:get -Dartifact=io.github.charles2ke:messageflow:1.0.0",
     documentation: "https://github.com/charles2ke/Message-Flow/blob/main/java/README.md",
   },
   {
