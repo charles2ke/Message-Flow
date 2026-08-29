@@ -58,8 +58,9 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      # Pages must be enabled with "GitHub Actions" as the source in the repository
-      # settings: the workflow token is not allowed to create the Pages site itself.
+      # Pages must be enabled once in the repository settings with "GitHub Actions"
+      # as the source; `enablement: true` cannot do it because GITHUB_TOKEN is not
+      # allowed to create the Pages site.
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 
