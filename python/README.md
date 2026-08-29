@@ -152,7 +152,7 @@ or OpenTelemetry are a few lines of code. The logging middleware never writes th
 
 ```bash
 cd python
-pip install -e .[dev]
+pip install -e ".[dev]"
 pytest --cov=messageflow --cov-report=term-missing --cov-fail-under=100
 ```
 
