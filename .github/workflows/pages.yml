@@ -18,8 +18,18 @@ jobs:
   build:
     name: Build site
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     steps:
       - uses: actions/checkout@v4
+
+      - name: Configure GitHub Pages
+        if: github.event_name != 'pull_request'
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
 
       - name: Setup Node
         uses: actions/setup-node@v4
