@@ -244,12 +244,12 @@ export class ChainBuilder<TRequest, TResponse> {
       try {
         const response = await next(request, cancellationToken);
         span.setOk();
-        span.close();
         return response;
       } catch (error: unknown) {
         span.setError(error);
-        span.close();
         throw error;
+      } finally {
+        span.close();
       }
     });
   }
