@@ -10,3 +10,23 @@ coverage*.xml
 .vscode/
 .idea/
 target/
+
+# Node
+node_modules/
+dist/
+dist-test/
+*.tsbuildinfo
+
+# Site
+_site/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.venv/

@@ -1,0 +1,14 @@
+{
+  "name": "messageflow-site",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "The MessageFlow documentation site: the language overview and the Swagger UI playground.",
+  "license": "Apache-2.0",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "devDependencies": {
+    "swagger-ui-dist": "5.32.14"
+  }
+}

@@ -1,0 +1,306 @@
+openapi: 3.0.3
+info:
+  title: MessageFlow Playground API
+  version: 1.0.0
+  description: |
+    A small API that exercises the **MessageFlow** chain of responsibility library.
+
+    The endpoints below are served **inside your browser** by the JavaScript port of the library —
+    every request you send from this page composes a real `ChainBuilder` and executes it, so nothing
+    ever leaves the page and no server is required.
+
+    The same API shape is implementable by each supported server-side port of the library:
+    C#, Java, Python and Node.
+  license:
+    name: Apache-2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.txt
+externalDocs:
+  description: MessageFlow on GitHub
+  url: https://github.com/charles2ke/Message-Flow
+
+servers:
+  - url: https://playground.messageflow.local/v1
+    description: In-browser playground, backed by the JavaScript port of MessageFlow.
+
+tags:
+  - name: languages
+    description: The server-side languages the library supports.
+  - name: chains
+    description: Compose and execute chains of responsibility.
+
+paths:
+  /languages:
+    get:
+      tags: [languages]
+      summary: List the supported server-side languages
+      description: Returns one entry per language port, with the package and the install command.
+      operationId: listLanguages
+      responses:
+        "200":
+          description: The supported languages.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [languages]
+                properties:
+                  languages:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Language"
+
+  /chains/ticket-triage:
+    get:
+      tags: [chains]
+      summary: Describe the support ticket triage chain
+      description: |
+        Returns the handlers of the pre-configured ticket triage chain, in registration order, and
+        the number of handlers the chain reports through `Chain.count`.
+      operationId: describeTicketTriageChain
+      responses:
+        "200":
+          description: The composition of the chain.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChainDescription"
+
+  /chains/ticket-triage/execute:
+    post:
+      tags: [chains]
+      summary: Route a support ticket through the triage chain
+      description: |
+        Sends the ticket through `refund → password reset → escalation branch → fallback`. The first
+        handler that accepts the ticket produces the response; tickets nothing accepts hit the
+        fallback.
+      operationId: executeTicketTriageChain
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Ticket"
+            examples:
+              refund:
+                summary: A refund ticket
+                value: { id: 41, kind: refund, priority: normal }
+              passwordReset:
+                summary: A password reset ticket
+                value: { id: 42, kind: passwordReset, priority: normal }
+              urgent:
+                summary: An urgent ticket taking the escalation branch
+                value: { id: 43, kind: other, priority: urgent }
+              unhandled:
+                summary: A ticket only the fallback accepts
+                value: { id: 44, kind: other, priority: normal }
+      responses:
+        "200":
+          description: The response produced by the chain.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExecutionResult"
+        "400":
+          description: The ticket is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /chains/execute:
+    post:
+      tags: [chains]
+      summary: Compose an ad-hoc chain and execute it
+      description: |
+        Builds a chain from the supplied handler descriptions and runs the request through it. Each
+        handler is registered with `useWhen`, so a handler whose condition does not match passes the
+        request on. Without a `fallback` an unaccepted request fails with `UnhandledRequestError`,
+        which is reported as HTTP 422.
+      operationId: executeChain
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChainExecutionRequest"
+            examples:
+              signOfNumber:
+                summary: The quick start chain
+                value:
+                  request: -7
+                  handlers:
+                    - name: negative
+                      when: { lessThan: 0 }
+                      respond: "negative:{request}"
+                    - name: zero
+                      when: { equals: 0 }
+                      respond: "zero"
+                  fallback: "positive:{request}"
+              unhandled:
+                summary: No handler accepts the request and there is no fallback
+                value:
+                  request: 5
+                  handlers:
+                    - name: negative
+                      when: { lessThan: 0 }
+                      respond: "negative:{request}"
+      responses:
+        "200":
+          description: The response produced by the chain.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExecutionResult"
+        "400":
+          description: The chain description is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          description: No handler accepted the request and no fallback was configured.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+components:
+  schemas:
+    Language:
+      type: object
+      required: [language, package, install, documentation]
+      properties:
+        language:
+          type: string
+          example: Python
+        package:
+          type: string
+          example: messageflow
+        install:
+          type: string
+          example: pip install messageflow
+        documentation:
+          type: string
+          format: uri
+          example: https://github.com/charles2ke/Message-Flow/blob/main/python/README.md
+
+    Ticket:
+      type: object
+      required: [id, kind]
+      properties:
+        id:
+          type: integer
+          format: int32
+          example: 41
+        kind:
+          type: string
+          enum: [refund, passwordReset, other]
+          example: refund
+        priority:
+          type: string
+          enum: [normal, urgent]
+          default: normal
+
+    ChainDescription:
+      type: object
+      required: [name, count, handlers]
+      properties:
+        name:
+          type: string
+          example: ticket-triage
+        count:
+          type: integer
+          description: The value reported by `Chain.count`; a branch counts as a single handler.
+          example: 4
+        handlers:
+          type: array
+          items:
+            type: object
+            required: [name, kind, description]
+            properties:
+              name:
+                type: string
+              kind:
+                type: string
+                enum: [handler, branch, middleware, fallback]
+              description:
+                type: string
+
+    ChainExecutionRequest:
+      type: object
+      required: [request, handlers]
+      properties:
+        request:
+          type: number
+          description: The request sent through the chain.
+          example: -7
+        handlers:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/HandlerDescription"
+        fallback:
+          type: string
+          nullable: true
+          description: |
+            The response of the terminal step invoked when no handler accepted the request.
+            `{request}` is replaced with the request.
+
+    HandlerDescription:
+      type: object
+      required: [name, when, respond]
+      properties:
+        name:
+          type: string
+          example: negative
+        when:
+          $ref: "#/components/schemas/Condition"
+        respond:
+          type: string
+          description: The response of the handler; `{request}` is replaced with the request.
+          example: "negative:{request}"
+
+    Condition:
+      type: object
+      description: Exactly one comparison against the request.
+      minProperties: 1
+      maxProperties: 1
+      properties:
+        equals:
+          type: number
+        lessThan:
+          type: number
+        greaterThan:
+          type: number
+
+    ExecutionResult:
+      type: object
+      required: [response, handledBy, elapsedMilliseconds, log]
+      properties:
+        response:
+          type: string
+          example: "negative:-7"
+        handledBy:
+          type: string
+          description: The name of the handler that produced the response, or `fallback`.
+          example: negative
+        elapsedMilliseconds:
+          type: number
+          format: double
+          example: 0.184
+        log:
+          type: array
+          description: The entries written by the logging middleware registered in front of the chain.
+          items:
+            type: string
+
+    Error:
+      type: object
+      required: [error, message]
+      properties:
+        error:
+          type: string
+          example: UnhandledRequestError
+        message:
+          type: string
+          example: No handler in the chain handled the request.

@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MessageFlow — chain of responsibility for C#, Java, Python and Node</title>
+    <meta
+      name="description"
+      content="MessageFlow is a small, dependency-free chain of responsibility library for C#, Java, Python and Node. Try the API in the browser."
+    />
+    <link rel="stylesheet" href="assets/swagger-ui/swagger-ui.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="hero">
+      <h1>MessageFlow</h1>
+      <p class="tagline">
+        A small, dependency-free <strong>chain of responsibility</strong> library — one API, four
+        server-side languages.
+      </p>
+      <nav class="links">
+        <a href="https://github.com/charles2ke/Message-Flow">GitHub</a>
+        <a href="openapi.yaml">openapi.yaml</a>
+        <a href="#playground">Playground</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="languages" aria-labelledby="languages-heading">
+        <h2 id="languages-heading">Supported languages</h2>
+        <ul class="cards">
+          <li class="card">
+            <h3>C#</h3>
+            <p>.NET 8, <code>ValueTask</code>-based.</p>
+            <pre><code>dotnet add package MessageFlow</code></pre>
+            <a href="https://github.com/charles2ke/Message-Flow#readme">Documentation</a>
+          </li>
+          <li class="card">
+            <h3>Java</h3>
+            <p>Java 17, <code>CompletionStage</code>-based.</p>
+            <pre><code>io.github.messageflow:messageflow</code></pre>
+            <a href="https://github.com/charles2ke/Message-Flow/blob/main/java/README.md"
+              >Documentation</a
+            >
+          </li>
+          <li class="card">
+            <h3>Python</h3>
+            <p>Python 3.9+, <code>asyncio</code>-based.</p>
+            <pre><code>pip install messageflow</code></pre>
+            <a href="https://github.com/charles2ke/Message-Flow/blob/main/python/README.md"
+              >Documentation</a
+            >
+          </li>
+          <li class="card">
+            <h3>Node</h3>
+            <p>Node 20+, TypeScript, <code>Promise</code>-based.</p>
+            <pre><code>npm install messageflow</code></pre>
+            <a href="https://github.com/charles2ke/Message-Flow/blob/main/node/README.md"
+              >Documentation</a
+            >
+          </li>
+        </ul>
+      </section>
+
+      <section id="playground" aria-labelledby="playground-heading">
+        <h2 id="playground-heading">Playground</h2>
+        <p class="note">
+          The endpoints below are served by the JavaScript port of MessageFlow running in this page:
+          every <em>Try it out</em> composes a real chain and executes it. No request leaves your
+          browser, and no server is involved.
+        </p>
+        <div id="status" class="status" role="status">Loading the playground…</div>
+        <div id="swagger-ui"></div>
+      </section>
+    </main>
+
+    <footer>
+      <p>Apache-2.0 licensed. Built from the <code>docs</code> directory of the repository.</p>
+    </footer>
+
+    <script src="assets/swagger-ui/swagger-ui-bundle.js" crossorigin="anonymous"></script>
+    <script src="assets/swagger-ui/swagger-ui-standalone-preset.js" crossorigin="anonymous"></script>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

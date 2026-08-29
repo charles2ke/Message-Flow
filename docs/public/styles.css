@@ -1,0 +1,146 @@
+:root {
+  color-scheme: light;
+  --ink: #17212b;
+  --muted: #55636f;
+  --accent: #4b6bfb;
+  --surface: #ffffff;
+  --border: #dde3ea;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #f5f7fa;
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.55;
+}
+
+.hero {
+  padding: 3rem 1.5rem 2rem;
+  text-align: center;
+  background: linear-gradient(140deg, #1f2a3c, #3b4f7d);
+  color: #fff;
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: 2.75rem;
+  letter-spacing: -0.02em;
+}
+
+.tagline {
+  margin: 0.75rem auto 1.25rem;
+  max-width: 46rem;
+  font-size: 1.1rem;
+  color: #d7deeb;
+}
+
+.links a {
+  color: #fff;
+  margin: 0 0.5rem;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.links a:hover,
+.links a:focus {
+  border-bottom-color: #fff;
+}
+
+main {
+  max-width: 68rem;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 3rem;
+}
+
+h2 {
+  font-size: 1.5rem;
+  margin-top: 2.5rem;
+}
+
+.cards {
+  list-style: none;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  margin: 0;
+  padding: 0;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  padding: 1.1rem 1.25rem;
+}
+
+.card h3 {
+  margin: 0 0 0.35rem;
+}
+
+.card p {
+  margin: 0 0 0.75rem;
+  color: var(--muted);
+}
+
+.card pre {
+  margin: 0 0 0.75rem;
+  padding: 0.5rem 0.65rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: #f0f3f8;
+  border-radius: 0.4rem;
+  font-size: 0.85rem;
+}
+
+.card a {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.note {
+  color: var(--muted);
+  max-width: 52rem;
+}
+
+.status {
+  margin: 0.5rem 0 1rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: 0.5rem;
+  background: #eef2ff;
+  border: 1px solid #ccd6ff;
+  font-size: 0.9rem;
+}
+
+.status[data-state="ready"] {
+  background: #edf9f0;
+  border-color: #bfe5cb;
+}
+
+.status[data-state="error"] {
+  background: #fdeeee;
+  border-color: #f0c2c2;
+}
+
+#swagger-ui {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.swagger-ui .topbar {
+  display: none;
+}
+
+footer {
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.9rem;
+}

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- A dependency-free Python 3.9+ implementation of the core pipeline API.
+- A dependency-free Node/TypeScript implementation of the core pipeline API.
+- A GitHub Pages site with a Swagger UI playground, served by the JavaScript port in the browser.
+
 ## [1.0.0] - 2026-08-28
 
 ### Added
