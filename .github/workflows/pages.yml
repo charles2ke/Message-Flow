@@ -60,16 +60,11 @@ jobs:
     env:
       PAGES_ENABLEMENT_TOKEN: ${{ secrets.PAGES_ENABLEMENT_TOKEN }}
     steps:
-      - name: Configure GitHub Pages (enablement)
-        if: ${{ env.PAGES_ENABLEMENT_TOKEN != '' }}
+      - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
         with:
-          token: ${{ env.PAGES_ENABLEMENT_TOKEN }}
+          token: ${{ env.PAGES_ENABLEMENT_TOKEN || github.token }}
           enablement: true
-
-      - name: Configure GitHub Pages
-        if: ${{ env.PAGES_ENABLEMENT_TOKEN == '' }}
-        uses: actions/configure-pages@v5
 
       - name: Deploy
         id: deployment

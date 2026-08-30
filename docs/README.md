@@ -35,8 +35,4 @@ Then open <http://localhost:8080/>.
 | `public/app.js` | The in-browser implementation of the API, built on the JavaScript port. |
 | `public/styles.css` | The styles of the landing page. |
 | `build.mjs` | Copies `public`, Swagger UI and the compiled JavaScript port into `_site`. |
-
-`.github/workflows/pages.yml` runs the same build and deploys `_site` on every push to `main`. If
-`PAGES_ENABLEMENT_TOKEN` is configured, the deployment step runs `actions/configure-pages` with
-`enablement: true` to create the Pages site with **GitHub Actions** as the source. Without that
-token, Pages must already be enabled in repository settings.
+| `.github/workflows/pages.yml` | Runs the same build and deploys `_site` on every push to `main`. The deployment step always runs `actions/configure-pages` with `enablement: true`, so the Pages site is created with **GitHub Actions** as the source when it does not exist yet. It uses the built-in `GITHUB_TOKEN` by default; configure the optional `PAGES_ENABLEMENT_TOKEN` secret if enablement needs a token with wider permissions. |
