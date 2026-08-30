@@ -81,7 +81,13 @@ jobs:
           python-version: "3.13"
 
       - name: Derive version from tag
-        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Release tags must use full semver format vMAJOR.MINOR.PATCH (for example, v1.2.3)."
+            exit 1
+          fi
+          echo "VERSION=${VERSION}" >> "$GITHUB_ENV"
 
       - name: Set the distribution version
         run: |
@@ -122,7 +128,13 @@ jobs:
           registry-url: https://registry.npmjs.org
 
       - name: Derive version from tag
-        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Release tags must use full semver format vMAJOR.MINOR.PATCH (for example, v1.2.3)."
+            exit 1
+          fi
+          echo "VERSION=${VERSION}" >> "$GITHUB_ENV"
 
       - name: Install dependencies
         run: npm ci
