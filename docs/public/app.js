@@ -34,8 +34,8 @@ const LANGUAGES = [
   },
   {
     language: "Node",
-    package: "messageflow",
-    install: "npm install messageflow",
+    package: "@charles2ke/messageflow",
+    install: "npm install @charles2ke/messageflow",
     documentation: "https://github.com/charles2ke/Message-Flow/blob/main/node/README.md",
   },
 ];

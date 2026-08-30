@@ -1,5 +1,5 @@
 {
-  "name": "messageflow",
+  "name": "@charles2ke/messageflow",
   "version": "1.0.0",
   "description": "A dependency-free Chain of Responsibility library for Node.js and browsers",
   "type": "module",
@@ -44,5 +44,8 @@
   },
   "engines": {
     "node": ">=20.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

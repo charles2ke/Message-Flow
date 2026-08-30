@@ -12,6 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A dependency-free Python 3.9+ implementation of the core pipeline API.
 - A dependency-free Node/TypeScript implementation of the core pipeline API.
 - A GitHub Pages site with a Swagger UI playground, served by the JavaScript port in the browser.
+- Release automation for the Python and Node ports: pushing a `v*` tag now publishes the PyPI
+  distribution and the npm package with the tag version.
+
+### Changed
+
+- The npm package is now published as `@charles2ke/messageflow`; npm rejects the unscoped
+  `messageflow` name because the unrelated `message-flow` package already exists.
 
 ## [1.0.0] - 2026-08-28
 

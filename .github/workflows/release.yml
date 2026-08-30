@@ -63,3 +63,75 @@ jobs:
       - name: Publish to Maven Central
         if: env.CENTRAL_TOKEN_USERNAME != '' && env.CENTRAL_TOKEN_PASSWORD != ''
         run: mvn -B -P central deploy -Drevision="${VERSION}"
+
+  publish-python:
+    name: Publish Python to PyPI
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: python
+    env:
+      PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Derive version from tag
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+
+      - name: Set the distribution version
+        run: sed -i "s/^version = .*/version = \"${VERSION}\"/" pyproject.toml
+
+      - name: Build the distribution
+        run: |
+          python -m pip install --upgrade pip build twine
+          python -m build
+          twine check dist/*
+
+      - name: Publish to PyPI
+        if: env.PYPI_API_TOKEN != ''
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: twine upload --skip-existing dist/*
+
+  publish-node:
+    name: Publish Node to npm
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: node
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: node/package-lock.json
+          registry-url: https://registry.npmjs.org
+
+      - name: Derive version from tag
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Set the package version
+        run: npm version "${VERSION}" --no-git-tag-version --allow-same-version
+
+      - name: Publish to npm
+        if: env.NPM_TOKEN != ''
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish

@@ -11,7 +11,7 @@ The library is dependency-free, runs in both Node.js and browsers, and targets E
 Add the package from npm:
 
 ```bash
-npm install messageflow
+npm install @charles2ke/messageflow
 ```
 
 To build from source instead, clone the repository and run:
@@ -25,7 +25,7 @@ npm run build
 ## Quick start
 
 ```typescript
-import { createChain } from 'messageflow';
+import { createChain } from '@charles2ke/messageflow';
 
 const chain = createChain<number, string>()
   .useWhen(
@@ -45,7 +45,7 @@ const response = await chain.execute(-7); // "negative:-7"
 ### Reusable handlers
 
 ```typescript
-import { HandlerBase, CancellationToken } from 'messageflow';
+import { HandlerBase, CancellationToken } from '@charles2ke/messageflow';
 
 class RefundHandler extends HandlerBase<Ticket, string> {
   protected canHandle(request: Ticket): boolean {
@@ -101,7 +101,7 @@ When no handler accepts a request and no fallback is configured, the returned pr
 `CancellationToken.none()` is used when `execute(request)` is called without a token.
 
 ```typescript
-import { CancellationTokenSource } from 'messageflow';
+import { CancellationTokenSource } from '@charles2ke/messageflow';
 
 const source = new CancellationTokenSource();
 const responsePromise = chain.execute(request, source.token());
