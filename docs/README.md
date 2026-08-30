@@ -37,6 +37,5 @@ Then open <http://localhost:8080/>.
 | `build.mjs` | Copies `public`, Swagger UI and the compiled JavaScript port into `_site`. |
 
 `.github/workflows/pages.yml` runs the same build and deploys `_site` on every push to `main`. The
-deployment requires GitHub Pages to be enabled once under **Settings → Pages** with **GitHub
-Actions** as the source; the workflow cannot enable it, because `GITHUB_TOKEN` is not allowed to
-create the Pages site.
+deployment step runs `actions/configure-pages` with `enablement: true`, so it creates the Pages
+site with **GitHub Actions** as the source when the repository does not have Pages enabled yet.
