@@ -84,7 +84,10 @@ jobs:
         run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
 
       - name: Set the distribution version
-        run: sed -i "s/^version = .*/version = \"${VERSION}\"/" pyproject.toml
+        run: |
+          sed -i "s/^version = .*/version = \"${VERSION}\"/" pyproject.toml
+          sed -i "s/^__version__ = .*/__version__ = \"${VERSION}\"/" src/messageflow/__init__.py
+          sed -i "s/^    TRACER_VERSION = .*/    TRACER_VERSION = \"${VERSION}\"/" src/messageflow/_diagnostics.py
 
       - name: Build the distribution
         run: |
@@ -124,8 +127,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Set the package version
-        run: npm version "${VERSION}" --no-git-tag-version --allow-same-version
+      - name: Set the package and runtime version
+        run: |
+          npm version "${VERSION}" --no-git-tag-version --allow-same-version
+          sed -i "s/static readonly TRACER_VERSION = '.*';/static readonly TRACER_VERSION = '${VERSION}';/" src/ChainDiagnostics.ts
 
       - name: Build
         run: npm run build
