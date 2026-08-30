@@ -57,16 +57,18 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    env:
+      PAGES_ENABLEMENT_TOKEN: ${{ secrets.PAGES_ENABLEMENT_TOKEN }}
     steps:
       - name: Configure GitHub Pages (enablement)
-        if: ${{ secrets.PAGES_ENABLEMENT_TOKEN != '' }}
+        if: ${{ env.PAGES_ENABLEMENT_TOKEN != '' }}
         uses: actions/configure-pages@v5
         with:
-          token: ${{ secrets.PAGES_ENABLEMENT_TOKEN }}
+          token: ${{ env.PAGES_ENABLEMENT_TOKEN }}
           enablement: true
 
       - name: Configure GitHub Pages
-        if: ${{ secrets.PAGES_ENABLEMENT_TOKEN == '' }}
+        if: ${{ env.PAGES_ENABLEMENT_TOKEN == '' }}
         uses: actions/configure-pages@v5
 
       - name: Deploy
