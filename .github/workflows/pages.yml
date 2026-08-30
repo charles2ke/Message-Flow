@@ -58,13 +58,16 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      # `enablement: true` creates the Pages site with "GitHub Actions" as the
-      # source when it does not exist yet, so the deploy does not fail with
-      # "Get Pages site failed" on repositories where Pages was never enabled.
-      - name: Configure GitHub Pages
+      - name: Configure GitHub Pages (enablement)
+        if: ${{ secrets.PAGES_ENABLEMENT_TOKEN != '' }}
         uses: actions/configure-pages@v5
         with:
+          token: ${{ secrets.PAGES_ENABLEMENT_TOKEN }}
           enablement: true
+
+      - name: Configure GitHub Pages
+        if: ${{ secrets.PAGES_ENABLEMENT_TOKEN == '' }}
+        uses: actions/configure-pages@v5
 
       - name: Deploy
         id: deployment
