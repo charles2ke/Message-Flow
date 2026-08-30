@@ -15,7 +15,7 @@ JavaScript port running in your browser.
 [![NuGet](https://img.shields.io/nuget/v/MessageFlow)](https://www.nuget.org/packages/MessageFlow)
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.charles2ke/messageflow)](https://central.sonatype.com/artifact/io.github.charles2ke/messageflow)
 [![PyPI](https://img.shields.io/pypi/v/messageflow)](https://pypi.org/project/messageflow/)
-[![npm](https://img.shields.io/npm/v/messageflow)](https://www.npmjs.com/package/messageflow)
+[![npm](https://img.shields.io/npm/v/@charles2ke/messageflow)](https://www.npmjs.com/package/@charles2ke/messageflow)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 
 <!-- BEGIN AUTO-GENERATED: coverage -->
@@ -83,7 +83,7 @@ The other ports are installed with their own package manager:
 | C# (.NET 8) | `MessageFlow` | `dotnet add package MessageFlow` | this file |
 | Java 17 | `io.github.charles2ke:messageflow` | Maven or Gradle dependency | [`java`](java/README.md) |
 | Python 3.9+ | `messageflow` | `pip install messageflow` | [`python`](python/README.md) |
-| Node 20+ | `messageflow` | `npm install messageflow` | [`node`](node/README.md) |
+| Node 20+ | `@charles2ke/messageflow` | `npm install @charles2ke/messageflow` | [`node`](node/README.md) |
 
 The ports mirror this API, adapted to the idioms of their language: `ValueTask` in C#,
 `CompletionStage` in Java, `async`/`await` coroutines in Python and `Promise` in TypeScript. Each
@@ -372,24 +372,27 @@ in CI and their results are uploaded as a build artifact.
 The project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html); notable changes are
 recorded in [CHANGELOG.md](CHANGELOG.md).
 
-Pushing a `v*` tag runs `.github/workflows/release.yml`: it packs `src/MessageFlow` with the tag
-version and pushes the package and symbols to NuGet, and also publishes the Java artifact
-`io.github.charles2ke:messageflow` to Maven Central from the `java` module with the `central`
-profile.
+Pushing a `v*` tag runs `.github/workflows/release.yml`, which publishes every port with the tag
+version (`v1.2.3` publishes `1.2.3`, so tags must carry the full `MAJOR.MINOR.PATCH` number):
 
-If a manual Java publish is ever needed, run:
+| Port | Package | Registry | Secrets |
+| --- | --- | --- | --- |
+| .NET | `MessageFlow` | NuGet | `NUGET_API_KEY` |
+| Java | `io.github.charles2ke:messageflow` | Maven Central | `CENTRAL_TOKEN_USERNAME`, `CENTRAL_TOKEN_PASSWORD`, `MAVEN_GPG_PRIVATE_KEY`, `MAVEN_GPG_PASSPHRASE` |
+| Python | `messageflow` | PyPI | `PYPI_API_TOKEN` |
+| Node | `@charles2ke/messageflow` | npm | `NPM_TOKEN` |
+
+Each job builds its artifact unconditionally and only skips the upload step when its credentials are
+missing, so the version badges above stay on `not found` until the corresponding secret is configured
+and a tag is pushed. The Node package is scoped because npm refuses new names that differ from an
+existing package only in punctuation, and `message-flow` is already taken.
+
+If a manual publish is ever needed, run:
 
 ```bash
-cd java
-mvn -P central deploy -Drevision=1.2.3
-```
-
-The Python distribution is published to PyPI and the JavaScript package to npm from their own
-directories:
-
-```bash
-cd python && python -m build && twine upload dist/*
-cd node && npm publish
+(cd java && mvn -P central deploy -Drevision=1.2.3)
+(cd python && python -m build && twine upload dist/*)
+(cd node && npm publish)
 ```
 
 The documentation site is redeployed to GitHub Pages on every push to `main` by
