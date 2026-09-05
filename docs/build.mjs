@@ -91,8 +91,8 @@ async function renderLanguageCards() {
   const html = await readFile(indexPath, "utf8");
   const placeholder = '<ul class="cards" data-language-cards></ul>';
 
-  if (!html.includes(placeholder)) {
-    throw new Error(`${indexPath} no longer contains the language card placeholder.`);
+  if (html.split(placeholder).length !== 2) {
+    throw new Error(`${indexPath} must contain the language card placeholder exactly once.`);
   }
 
   await writeFile(

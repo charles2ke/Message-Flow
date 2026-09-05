@@ -117,7 +117,8 @@ jobs:
   performance:
     name: Performance benchmarks
     # Benchmarks are the slowest job and nothing gates on their result, so they run on main
-    # and on demand instead of on every pull request.
+    # and on demand instead of on every pull request, and only once the build is known to be good.
+    needs: build-test
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
