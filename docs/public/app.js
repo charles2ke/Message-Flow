@@ -10,35 +10,17 @@ import {
   UnhandledRequestError,
   createChain,
 } from "./assets/messageflow/index.js";
+import { LANGUAGES as LANGUAGE_CATALOGUE } from "./languages.js";
 
 const BASE_URL = "https://playground.messageflow.local/v1";
 
-const LANGUAGES = [
-  {
-    language: "C#",
-    package: "MessageFlow",
-    install: "dotnet add package MessageFlow",
-    documentation: "https://github.com/charles2ke/Message-Flow#readme",
-  },
-  {
-    language: "Java",
-    package: "io.github.charles2ke:messageflow",
-    install: "mvn dependency:get -Dartifact=io.github.charles2ke:messageflow:1.0.0",
-    documentation: "https://github.com/charles2ke/Message-Flow/blob/main/java/README.md",
-  },
-  {
-    language: "Python",
-    package: "messageflow",
-    install: "pip install messageflow",
-    documentation: "https://github.com/charles2ke/Message-Flow/blob/main/python/README.md",
-  },
-  {
-    language: "Node",
-    package: "@charles2ke/messageflow",
-    install: "npm install @charles2ke/messageflow",
-    documentation: "https://github.com/charles2ke/Message-Flow/blob/main/node/README.md",
-  },
-];
+/** The API shape of the language list, projected from the shared catalogue. */
+const LANGUAGES = LANGUAGE_CATALOGUE.map(({ language, package: name, install, documentation }) => ({
+  language,
+  package: name,
+  install,
+  documentation,
+}));
 
 const TICKET_KINDS = ["refund", "passwordReset", "other"];
 const PRIORITIES = ["normal", "urgent"];

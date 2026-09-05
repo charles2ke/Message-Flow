@@ -10,6 +10,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-test:
     name: Build, test and coverage
@@ -17,6 +21,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # The solution uses the .slnx format, which needs the .NET 10 SDK, while every project
+      # targets net8.0 and therefore needs the .NET 8 runtime to run the tests.
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
@@ -24,11 +30,21 @@ jobs:
             8.0.x
             10.0.x
 
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
       - name: Restore
         run: dotnet restore MessageFlow.slnx
 
       - name: Build
         run: dotnet build MessageFlow.slnx --configuration Release --no-restore
+
+      - name: Verify formatting
+        run: dotnet format MessageFlow.slnx --verify-no-changes --no-restore
 
       - name: Test with 100% coverage gate
         run: |
@@ -49,22 +65,7 @@ jobs:
           name: coverage
           path: artifacts/coverage/
 
-  vulnerability-scan:
-    name: Dependency vulnerability scan
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: |
-            8.0.x
-            10.0.x
-
-      - name: Restore
-        run: dotnet restore MessageFlow.slnx
-
+      # Reuses the restore of this job instead of paying for a second checkout and restore.
       - name: Check for vulnerable and deprecated packages
         run: |
           dotnet list MessageFlow.slnx package --vulnerable --include-transitive > vulnerable.txt
@@ -75,8 +76,49 @@ jobs:
           fi
           dotnet list MessageFlow.slnx package --deprecated
 
+  readme:
+    name: Regenerate auto-generated README sections
+    needs: build-test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # The coverage badge comes from the Cobertura report produced by build-test, so the
+      # test suite does not have to run a second time.
+      - name: Download the coverage report
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage
+          path: artifacts/coverage
+
+      - name: Check README on pull requests
+        if: github.event_name == 'pull_request'
+        run: python scripts/update_readme.py --check
+
+      - name: Update and commit README
+        if: github.event_name != 'pull_request'
+        run: |
+          python scripts/update_readme.py
+          if [ -n "$(git status --porcelain README.md)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add README.md
+            git commit -m "docs: auto-update README"
+            git push
+          fi
+
   performance:
     name: Performance benchmarks
+    # Benchmarks are the slowest job and nothing gates on their result, so they run on main
+    # and on demand instead of on every pull request.
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -87,6 +129,13 @@ jobs:
           dotnet-version: |
             8.0.x
             10.0.x
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: ${{ runner.os }}-nuget-
 
       - name: Run benchmarks
         run: |

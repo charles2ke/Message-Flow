@@ -5,10 +5,13 @@
  *   - `assets/swagger-ui`: the Swagger UI distribution rendering `openapi.yaml`;
  *   - `assets/messageflow`: the compiled JavaScript port of the library, which answers the
  *     playground requests in the browser.
+ *
+ * The language cards of the landing page are rendered from `public/languages.js`, the same
+ * catalogue the playground serves, so the install commands are never duplicated.
  */
-import { cp, mkdir, rm, stat } from "node:fs/promises";
+import { cp, mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const root = dirname(fileURLToPath(import.meta.url));
 const output = resolve(root, "_site");
@@ -56,4 +59,44 @@ await cp(resolve(nodePackage, "dist"), resolve(output, "assets", "messageflow"),
   recursive: true,
 });
 
+await renderLanguageCards();
+
 console.log(`Site built in ${output}`);
+
+/** Escapes the characters that are significant in HTML text and attribute values. */
+function escapeHtml(value) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+}
+
+/** Replaces the language card placeholder of the landing page with the rendered cards. */
+async function renderLanguageCards() {
+  const { LANGUAGES } = await import(
+    pathToFileURL(resolve(root, "public", "languages.js")).href
+  );
+
+  const cards = LANGUAGES.map(
+    (entry) => `          <li class="card">
+            <h3>${escapeHtml(entry.language)}</h3>
+            <p>${escapeHtml(entry.runtime)}, <code>${escapeHtml(entry.style)}</code>-based.</p>
+            <pre><code>${escapeHtml(entry.card)}</code></pre>
+            <a href="${escapeHtml(entry.documentation)}">Documentation</a>
+          </li>`,
+  ).join("\n");
+
+  const indexPath = resolve(output, "index.html");
+  const html = await readFile(indexPath, "utf8");
+  const placeholder = '<ul class="cards" data-language-cards></ul>';
+
+  if (!html.includes(placeholder)) {
+    throw new Error(`${indexPath} no longer contains the language card placeholder.`);
+  }
+
+  await writeFile(
+    indexPath,
+    html.replace(placeholder, `<ul class="cards">\n${cards}\n        </ul>`),
+  );
+}

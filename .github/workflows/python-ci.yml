@@ -3,20 +3,32 @@ name: Python CI
 on:
   push:
     branches: [main]
+    paths:
+      - "python/**"
+      - ".github/workflows/python-ci.yml"
   pull_request:
     branches: [main]
+    paths:
+      - "python/**"
+      - ".github/workflows/python-ci.yml"
   workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-test:
     name: Build and test (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
     strategy:
+      # Pull requests only check the oldest and the newest supported interpreter; the full
+      # matrix runs on main and on demand.
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ${{ fromJSON(github.event_name == 'pull_request' && '["3.9", "3.13"]' || '["3.9", "3.10", "3.11", "3.12", "3.13"]') }}
     defaults:
       run:
         working-directory: python
@@ -28,6 +40,8 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           allow-prereleases: true
+          cache: pip
+          cache-dependency-path: python/pyproject.toml
 
       - name: Install dependencies
         run: |
