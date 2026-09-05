@@ -93,7 +93,7 @@ jobs:
       # The coverage badge comes from the Cobertura report produced by build-test, so the
       # test suite does not have to run a second time.
       - name: Download the coverage report
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v4.3.0
         with:
           name: coverage
           path: artifacts/coverage
