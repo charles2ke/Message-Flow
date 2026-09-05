@@ -6,7 +6,9 @@
   "description": "The MessageFlow documentation site: the language overview and the Swagger UI playground.",
   "license": "Apache-2.0",
   "scripts": {
-    "build": "node build.mjs"
+    "build": "node build.mjs",
+    "build:all": "npm --prefix ../node ci && npm --prefix ../node run build && node build.mjs",
+    "preview": "python3 -m http.server --directory _site 8080"
   },
   "devDependencies": {
     "swagger-ui-dist": "5.32.14"

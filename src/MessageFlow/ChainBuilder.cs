@@ -8,7 +8,7 @@ namespace MessageFlow;
 public sealed class ChainBuilder<TRequest, TResponse>
 {
     private readonly List<Func<NextHandler<TRequest, TResponse>, NextHandler<TRequest, TResponse>>> _steps = [];
-    private Func<TRequest, CancellationToken, ValueTask<TResponse>>? _fallback;
+    private NextHandler<TRequest, TResponse>? _fallback;
 
     /// <summary>
     /// Appends a handler to the end of the chain.
@@ -168,7 +168,9 @@ public sealed class ChainBuilder<TRequest, TResponse>
     {
         ArgumentNullException.ThrowIfNull(fallback);
 
-        _fallback = fallback;
+        // Bound to a NextHandler once, here, so that the composed pipeline calls the fallback
+        // directly instead of paying for a wrapper delegate on every unhandled request.
+        _fallback = fallback.Invoke;
         return this;
     }
 
@@ -190,9 +192,7 @@ public sealed class ChainBuilder<TRequest, TResponse>
 
         return terminal =>
         {
-            var pipeline = fallback is null
-                ? terminal
-                : (request, cancellationToken) => fallback(request, cancellationToken);
+            var pipeline = fallback ?? terminal;
 
             for (var i = steps.Length - 1; i >= 0; i--)
             {

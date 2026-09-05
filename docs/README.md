@@ -18,6 +18,15 @@ specification that the C#, Java, Python and Node implementations can be checked 
 
 ## Build and preview locally
 
+The site embeds the compiled JavaScript port, so `node/` has to be built first. `build:all` does
+both steps in one command:
+
+```bash
+cd docs && npm ci && npm run build:all && npm run preview
+```
+
+Or, building each part explicitly:
+
 ```bash
 cd node && npm ci && npm run build && cd ..
 cd docs && npm ci && npm run build
@@ -33,6 +42,7 @@ Then open <http://localhost:8080/>.
 | `public/index.html` | The landing page and the Swagger UI container. |
 | `public/openapi.yaml` | The OpenAPI 3 description of the playground API. |
 | `public/app.js` | The in-browser implementation of the API, built on the JavaScript port. |
+| `public/languages.js` | The catalogue of language ports: the source of both the landing page cards and the `/languages` response. |
 | `public/styles.css` | The styles of the landing page. |
-| `build.mjs` | Copies `public`, Swagger UI and the compiled JavaScript port into `_site`. |
+| `build.mjs` | Copies `public`, Swagger UI and the compiled JavaScript port into `_site`, and renders the language cards from `public/languages.js`. |
 | `.github/workflows/pages.yml` | Runs the same build and deploys `_site` on every push to `main`. The deployment step always runs `actions/configure-pages` with `enablement: true`, so the Pages site is created with **GitHub Actions** as the source when it does not exist yet. It uses the built-in `GITHUB_TOKEN` by default; configure the optional `PAGES_ENABLEMENT_TOKEN` secret if enablement needs a token with wider permissions. |

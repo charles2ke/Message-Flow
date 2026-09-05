@@ -12,6 +12,7 @@ public class ChainBenchmarks
 {
     private IChain<int, int> _chain = null!;
     private IChain<int, int> _mergedChain = null!;
+    private IChain<int, int> _branchedChain = null!;
     private LinkedHandler _linked = null!;
 
     /// <summary>
@@ -47,6 +48,20 @@ public class ChainBenchmarks
             .WithFallback((request, _) => new ValueTask<int>(-request))
             .Build();
 
+        _branchedChain = Chain.Create<int, int>()
+            .UseBranch(
+                request => request >= 0,
+                branch =>
+                {
+                    for (var i = 0; i < HandlerCount; i++)
+                    {
+                        var index = i;
+                        branch.UseWhen(request => request == index, (request, _) => new ValueTask<int>(request));
+                    }
+                })
+            .WithFallback((request, _) => new ValueTask<int>(-request))
+            .Build();
+
         LinkedHandler? head = null;
         for (var i = HandlerCount - 1; i >= 0; i--)
         {
@@ -69,6 +84,20 @@ public class ChainBenchmarks
     /// <returns>The response.</returns>
     [Benchmark]
     public ValueTask<int> MergedChain() => _mergedChain.ExecuteAsync(HandlerCount - 1);
+
+    /// <summary>
+    /// Executes the same request through a chain whose handlers live in a nested branch.
+    /// </summary>
+    /// <returns>The response.</returns>
+    [Benchmark]
+    public ValueTask<int> BranchedChain() => _branchedChain.ExecuteAsync(HandlerCount - 1);
+
+    /// <summary>
+    /// Executes a request no handler accepts, so it reaches the fallback.
+    /// </summary>
+    /// <returns>The response.</returns>
+    [Benchmark]
+    public ValueTask<int> FallbackChain() => _chain.ExecuteAsync(HandlerCount);
 
     /// <summary>
     /// Executes the same request through a classic linked-list chain.

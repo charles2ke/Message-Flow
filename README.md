@@ -328,7 +328,11 @@ dotnet test tests/MessageFlow.Tests/MessageFlow.Tests.csproj \
 ```
 
 The build treats warnings (including .NET analyzer diagnostics) as errors, and the test run fails if
-coverage drops below 100%.
+coverage drops below 100%. Formatting follows the repository `.editorconfig` and is enforced in CI:
+
+```bash
+dotnet format MessageFlow.slnx --verify-no-changes
+```
 
 The Java port is built and tested with Maven:
 
@@ -355,7 +359,9 @@ npm test
 ```
 
 Each port has its own workflow — `.github/workflows/ci.yml`, `java-ci.yml`, `python-ci.yml` and
-`node-ci.yml` — and the site is built on every pull request by `pages.yml`.
+`node-ci.yml` — and the site is built by `pages.yml`. The per-port workflows only run when their
+own directory changes, superseded runs on the same branch are cancelled, and pull requests check
+the oldest and the newest supported Python version only; the full 3.9–3.13 matrix runs on `main`.
 
 ## Performance
 
@@ -363,9 +369,10 @@ Each port has its own workflow — `.github/workflows/ci.yml`, `java-ci.yml`, `p
 dotnet run --project benchmarks/MessageFlow.Benchmarks/MessageFlow.Benchmarks.csproj -c Release -- --filter '*'
 ```
 
-The benchmark compares the pre-compiled chain against a classic linked-list chain of responsibility
-for chains of 1, 5 and 20 handlers, and reports allocations via `MemoryDiagnoser`. Benchmarks also run
-in CI and their results are uploaded as a build artifact.
+The benchmark compares the pre-compiled chain — plain, merged, branched and fallback-terminated —
+against a classic linked-list chain of responsibility for chains of 1, 5 and 20 handlers, and reports
+allocations via `MemoryDiagnoser`. Benchmarks run in CI on `main` and on demand, and their results
+are uploaded as a build artifact.
 
 ## Releases and versioning
 
@@ -410,8 +417,8 @@ Security scanning runs automatically on every push and pull request:
 ## Auto-updated documentation
 
 The coverage badges and public API table above are generated from the code and the coverage report.
-`.github/workflows/update-readme.yml` regenerates them on every push to `main` and commits the
-result; pull requests are checked with:
+The `readme` job of `.github/workflows/ci.yml` reuses the coverage artifact of the test job to
+regenerate them on every push to `main` and commits the result; pull requests are checked with:
 
 ```bash
 python scripts/update_readme.py --check
