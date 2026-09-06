@@ -8,7 +8,7 @@
   "scripts": {
     "build": "node build.mjs",
     "build:all": "npm --prefix ../node ci && npm --prefix ../node run build && node build.mjs",
-    "preview": "python3 -m http.server --directory _site 8080"
+    "preview": "(command -v python3 >/dev/null 2>&1 && python3 -m http.server --directory _site 8080) || python -m http.server --directory _site 8080"
   },
   "devDependencies": {
     "swagger-ui-dist": "5.32.14"

@@ -359,9 +359,11 @@ npm test
 ```
 
 Each port has its own workflow — `.github/workflows/ci.yml`, `java-ci.yml`, `python-ci.yml` and
-`node-ci.yml` — and the site is built by `pages.yml`. The per-port workflows only run when their
-own directory changes, superseded runs on the same branch are cancelled, and pull requests check
-the oldest and the newest supported Python version only; the full 3.9–3.13 matrix runs on `main`.
+`node-ci.yml` — and the site is built by `pages.yml`. For `push` and `pull_request` events, the
+per-port workflows only run when their own directory changes; each also has a `workflow_dispatch`
+trigger, so manual runs remain possible regardless of which files changed. Superseded runs on the
+same branch are cancelled, and pull requests check the oldest and the newest supported Python
+version only; the full 3.9–3.13 matrix runs on `main`.
 
 ## Performance
 
