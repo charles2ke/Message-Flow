@@ -1,0 +1,8 @@
+# Normalise line endings across the five ecosystems of the repository.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.snk binary

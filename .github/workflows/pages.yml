@@ -3,8 +3,16 @@ name: Pages
 on:
   push:
     branches: [main]
+    paths:
+      - "docs/**"
+      - "node/**"
+      - ".github/workflows/pages.yml"
   pull_request:
     branches: [main]
+    paths:
+      - "docs/**"
+      - "node/**"
+      - ".github/workflows/pages.yml"
   workflow_dispatch:
 
 permissions:
@@ -27,6 +35,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
+          cache: npm
+          cache-dependency-path: |
+            node/package-lock.json
+            docs/package-lock.json
 
       - name: Build the JavaScript port
         working-directory: node

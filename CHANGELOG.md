@@ -19,6 +19,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The npm package is now published as `@charles2ke/messageflow`; npm rejects the unscoped
   `messageflow` name because the unrelated `message-flow` package already exists.
+- A chain fallback is now bound to the pipeline directly, removing one delegate call per request
+  that reaches the fallback.
+- CI is cheaper: workflow runs are cancelled when superseded, the per-port workflows only run when
+  their directory changes, dependencies are cached, and the README job reuses the coverage artifact
+  instead of running the test suite a second time.
+- The landing page language cards of the site are generated from `docs/public/languages.js`, the
+  same catalogue the playground serves.
 
 ## [1.0.0] - 2026-08-28
 
