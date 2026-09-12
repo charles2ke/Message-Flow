@@ -39,7 +39,7 @@
   },
   "homepage": "https://github.com/charles2ke/Message-Flow/blob/main/node/README.md",
   "devDependencies": {
-    "@types/node": "^22.0.0",
+    "@types/node": "^22.20.2",
     "typescript": "^5.6.0"
   },
   "engines": {
