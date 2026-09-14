@@ -1,0 +1,67 @@
+name: Badges
+
+# Keeps the package badges of README.md in sync with the registries: a port that is not
+# published yet shows an "unreleased" badge instead of a broken shields.io "not found" one.
+on:
+  schedule:
+    # Registries index a new release within minutes, the daily run is only a safety net.
+    - cron: "17 5 * * *"
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  badges:
+    name: Refresh package badges
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Refresh the package badges
+        run: python scripts/update_readme.py --sections packages
+
+      - name: Commit the result
+        run: |
+          if [ -n "$(git status --porcelain README.md)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add README.md
+            git commit -m "docs: refresh package badges"
+            # The CI workflow's readme job can push to README.md around the same time, so
+            # rebase onto the latest main and retry instead of failing on a race.
+            for attempt in 1 2 3 4 5; do
+              if git push; then
+                exit 0
+              fi
+              echo "Push rejected (attempt $attempt/5), rebasing onto latest main and retrying..."
+              git fetch origin main
+              git rebase origin/main || { echo "Rebase onto origin/main failed." >&2; exit 1; }
+              python scripts/update_readme.py --sections packages
+              if [ -n "$(git status --porcelain README.md)" ]; then
+                git add README.md
+                git commit --amend --no-edit
+              else
+                echo "Badges already up to date on main, nothing to push."
+                exit 0
+              fi
+            done
+            echo "Failed to push README badge refresh after 5 attempts." >&2
+            exit 1
+          fi

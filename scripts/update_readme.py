@@ -4,9 +4,14 @@
 The script refreshes:
 
 * the coverage badge, from the Cobertura report produced by ``dotnet test``;
-* the public API table, from the XML doc comments in ``src/MessageFlow``.
+* the public API table, from the XML doc comments in ``src/MessageFlow``;
+* the package badges, from the registries the ports are published to.
 
-Usage: ``python scripts/update_readme.py [--check]``
+Usage: ``python scripts/update_readme.py [--check] [--sections coverage api packages]``
+
+The ``packages`` section needs network access and is therefore not part of the default
+sections: it is refreshed by ``.github/workflows/badges.yml`` instead of by the pull request
+check, so a publish (or an outage) can never fail an unrelated pull request.
 """
 
 from __future__ import annotations
@@ -14,6 +19,8 @@ from __future__ import annotations
 import argparse
 import re
 import sys
+import urllib.error
+import urllib.request
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
@@ -32,6 +39,42 @@ DELEGATE_PATTERN = re.compile(
 )
 
 CREF_PATTERN = re.compile(r"<see\s+cref=\"(?:[A-Za-z]:)?([^\"]+)\"\s*/>")
+
+# Each port publishes to a different registry, so the badge of a port can only be dynamic
+# once its package exists: shields.io renders "not found" (or "invalid") otherwise, which is
+# what ``probe`` guards against.
+PACKAGES = (
+    {
+        "label": "NuGet",
+        "probe": "https://api.nuget.org/v3-flatcontainer/messageflow/index.json",
+        "badge": "https://img.shields.io/nuget/v/MessageFlow",
+        "link": "https://www.nuget.org/packages/MessageFlow",
+    },
+    {
+        "label": "Maven Central",
+        "probe": (
+            "https://repo1.maven.org/maven2/io/github/charles2ke/messageflow/maven-metadata.xml"
+        ),
+        "badge": "https://img.shields.io/maven-central/v/io.github.charles2ke/messageflow",
+        "link": "https://central.sonatype.com/artifact/io.github.charles2ke/messageflow",
+    },
+    {
+        "label": "PyPI",
+        "probe": "https://pypi.org/pypi/messageflow/json",
+        "badge": "https://img.shields.io/pypi/v/messageflow",
+        "link": "https://pypi.org/project/messageflow/",
+    },
+    {
+        "label": "npm",
+        "probe": "https://registry.npmjs.org/@charles2ke%2Fmessageflow",
+        "badge": "https://img.shields.io/npm/v/@charles2ke/messageflow",
+        "link": "https://www.npmjs.com/package/@charles2ke/messageflow",
+    },
+)
+
+LICENSE_BADGE = (
+    "[![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)"
+)
 
 
 def find_coverage_report() -> Path | None:
@@ -58,6 +101,40 @@ def coverage_section() -> str:
         f"![line coverage](https://img.shields.io/badge/line%20coverage-{line_rate}%25-{color})\n"
         f"![branch coverage](https://img.shields.io/badge/branch%20coverage-{branch_rate}%25-{color})"
     )
+
+
+def is_published(url: str) -> bool:
+    """Return whether the registry knows the package behind ``url``."""
+    request = urllib.request.Request(url, headers={"User-Agent": "messageflow-readme"})
+    try:
+        with urllib.request.urlopen(request, timeout=30) as response:
+            return response.status == 200
+    except urllib.error.HTTPError as error:
+        if error.code == 404:
+            return False
+        raise
+
+
+def packages_section(current: str) -> str:
+    """Build the package badge section, keeping ``current`` when a registry is unreachable."""
+    badges = []
+    for package in PACKAGES:
+        try:
+            published = is_published(package["probe"])
+        except (urllib.error.URLError, OSError) as error:  # pragma: no cover - network
+            print(f"Could not query {package['label']} ({error}); badges left unchanged.")
+            return current
+
+        if published:
+            badge, link = package["badge"], package["link"]
+        else:
+            label = package["label"].replace(" ", "%20")
+            badge = f"https://img.shields.io/badge/{label}-unreleased-lightgrey"
+            link = "#releases-and-versioning"
+        badges.append(f"[![{package['label']}]({badge})]({link})")
+
+    badges.append(LICENSE_BADGE)
+    return "\n".join(badges)
 
 
 def summary_for(lines: list[str], index: int) -> str:
@@ -110,6 +187,16 @@ def api_section() -> str:
     return f"{header}\n{body}"
 
 
+def read_section(content: str, marker: str) -> str:
+    """Return the current content between the begin/end markers of ``marker``."""
+    begin = f"<!-- BEGIN AUTO-GENERATED: {marker} -->"
+    end = f"<!-- END AUTO-GENERATED: {marker} -->"
+    match = re.search(f"{re.escape(begin)}\\n(.*?)\\n{re.escape(end)}", content, re.DOTALL)
+    if match is None:
+        raise SystemExit(f"Marker '{marker}' not found in README.md")
+    return match.group(1)
+
+
 def replace_section(content: str, marker: str, section: str) -> str:
     """Replace the content between the begin/end markers of ``marker``."""
     begin = f"<!-- BEGIN AUTO-GENERATED: {marker} -->"
@@ -128,11 +215,25 @@ def main() -> int:
         action="store_true",
         help="fail instead of writing when README.md is out of date",
     )
+    parser.add_argument(
+        "--sections",
+        nargs="+",
+        choices=["coverage", "api", "packages"],
+        default=["coverage", "api"],
+        help="sections to regenerate (default: coverage api)",
+    )
     args = parser.parse_args()
 
     original = README.read_text(encoding="utf-8")
-    updated = replace_section(original, "coverage", coverage_section())
-    updated = replace_section(updated, "api", api_section())
+    updated = original
+    if "coverage" in args.sections:
+        updated = replace_section(updated, "coverage", coverage_section())
+    if "api" in args.sections:
+        updated = replace_section(updated, "api", api_section())
+    if "packages" in args.sections:
+        updated = replace_section(
+            updated, "packages", packages_section(read_section(updated, "packages"))
+        )
 
     if updated == original:
         print("README.md is up to date.")
