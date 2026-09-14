@@ -10,7 +10,7 @@ export const LANGUAGES = [
     package: "MessageFlow",
     install: "dotnet add package MessageFlow",
     documentation: "https://github.com/charles2ke/Message-Flow#readme",
-    runtime: ".NET 8",
+    runtime: ".NET 10",
     style: "ValueTask",
     card: "dotnet add package MessageFlow",
   },
