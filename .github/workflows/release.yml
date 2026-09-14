@@ -16,10 +16,14 @@ jobs:
         with:
           fetch-depth: 0
 
+      # The package references Microsoft.SourceLink.GitHub 10.x, whose MSBuild tooling expects the
+      # .NET 10 SDK, while the project targets net8.0 and therefore needs the .NET 8 runtime.
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: |
+            8.0.x
+            10.0.x
 
       - name: Pack
         run: dotnet pack src/MessageFlow/MessageFlow.csproj --configuration Release --output artifacts -p:PackageVersion="${GITHUB_REF_NAME#v}"
