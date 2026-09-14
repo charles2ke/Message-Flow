@@ -52,7 +52,7 @@ jobs:
               fi
               echo "Push rejected (attempt $attempt/5), rebasing onto latest main and retrying..."
               git fetch origin main
-              git rebase origin/main
+              git rebase origin/main || { echo "Rebase onto origin/main failed." >&2; exit 1; }
               python scripts/update_readme.py --sections packages
               if [ -n "$(git status --porcelain README.md)" ]; then
                 git add README.md
