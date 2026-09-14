@@ -12,11 +12,13 @@ language can be transcribed into any other one. Try them out in the
 [**playground**](https://charles2ke.github.io/Message-Flow/), where the API is served by the
 JavaScript port running in your browser.
 
+<!-- BEGIN AUTO-GENERATED: packages -->
 [![NuGet](https://img.shields.io/nuget/v/MessageFlow)](https://www.nuget.org/packages/MessageFlow)
-[![Maven Central](https://img.shields.io/maven-central/v/io.github.charles2ke/messageflow)](https://central.sonatype.com/artifact/io.github.charles2ke/messageflow)
-[![PyPI](https://img.shields.io/pypi/v/messageflow)](https://pypi.org/project/messageflow/)
-[![npm](https://img.shields.io/npm/v/@charles2ke/messageflow)](https://www.npmjs.com/package/@charles2ke/messageflow)
+[![Maven Central](https://img.shields.io/badge/Maven%20Central-unreleased-lightgrey)](#releases-and-versioning)
+[![PyPI](https://img.shields.io/badge/PyPI-unreleased-lightgrey)](#releases-and-versioning)
+[![npm](https://img.shields.io/badge/npm-unreleased-lightgrey)](#releases-and-versioning)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
+<!-- END AUTO-GENERATED: packages -->
 
 <!-- BEGIN AUTO-GENERATED: coverage -->
 ![line coverage](https://img.shields.io/badge/line%20coverage-100%25-brightgreen)
@@ -392,9 +394,11 @@ version (`v1.2.3` publishes `1.2.3`, so tags must carry the full `MAJOR.MINOR.PA
 | Node | `@charles2ke/messageflow` | npm | `NPM_TOKEN` |
 
 Each job builds its artifact unconditionally and only skips the upload step when its credentials are
-missing, so the version badges above stay on `not found` until the corresponding secret is configured
-and a tag is pushed. The Node package is scoped because npm refuses new names that differ from an
-existing package only in punctuation, and `message-flow` is already taken.
+missing, so a port stays unpublished until the corresponding secret is configured and a tag is
+pushed. The badges above reflect that automatically: a port that is not on its registry yet shows an
+`unreleased` badge instead of a broken shields.io `not found` one, and switches to the live version
+badge once the package is published. The Node package is scoped because npm refuses new names that
+differ from an existing package only in punctuation, and `message-flow` is already taken.
 
 If a manual publish is ever needed, run:
 
@@ -425,6 +429,17 @@ regenerate them on every push to `main` and commits the result; pull requests ar
 ```bash
 python scripts/update_readme.py --check
 ```
+
+The package badges are refreshed by `.github/workflows/badges.yml`, which runs daily, after every
+release workflow run and on demand:
+
+```bash
+python scripts/update_readme.py --sections packages
+```
+
+That section needs network access to the registries, so it is kept out of the default sections and
+out of the pull request check: a publish — or a registry outage — can never fail an unrelated pull
+request, and an unreachable registry leaves the current badges untouched.
 
 ## License
 
