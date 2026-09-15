@@ -16,8 +16,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      # The package references Microsoft.SourceLink.GitHub 10.x and the project targets net10.0,
-      # so the .NET 10 SDK is required.
+      # The package references Microsoft.SourceLink.GitHub 10.x and multi-targets net8.0 and
+      # net10.0, so the .NET 10 SDK is required.
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
