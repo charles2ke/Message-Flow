@@ -66,7 +66,7 @@ flowchart LR
 
 ## Installation
 
-The C# library targets `net8.0`. Install it from NuGet:
+The C# library targets `net8.0` and `net10.0`. Install it from NuGet:
 
 ```bash
 dotnet add package MessageFlow
@@ -82,7 +82,7 @@ The other ports are installed with their own package manager:
 
 | Language | Package | Install | Documentation |
 | --- | --- | --- | --- |
-| C# (.NET 8) | `MessageFlow` | `dotnet add package MessageFlow` | this file |
+| C# (.NET 8 or .NET 10) | `MessageFlow` | `dotnet add package MessageFlow` | this file |
 | Java 17 | `io.github.charles2ke:messageflow` | Maven or Gradle dependency | [`java`](java/README.md) |
 | Python 3.9+ | `messageflow` | `pip install messageflow` | [`python`](python/README.md) |
 | Node 20+ | `@charles2ke/messageflow` | `npm install @charles2ke/messageflow` | [`node`](node/README.md) |

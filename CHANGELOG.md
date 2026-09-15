@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- The C# library now multi-targets `net8.0` and `net10.0`, so existing .NET 8 consumers keep
+  working; the tests, samples and benchmarks target `net10.0` and the workflows install only the
+  .NET 10 SDK.
 - The npm package is now published as `@charles2ke/messageflow`; npm rejects the unscoped
   `messageflow` name because the unrelated `message-flow` package already exists.
 - A chain fallback is now bound to the pipeline directly, removing one delegate call per request

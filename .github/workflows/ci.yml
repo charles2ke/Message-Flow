@@ -21,14 +21,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # The solution uses the .slnx format, which needs the .NET 10 SDK, while every project
-      # targets net8.0 and therefore needs the .NET 8 runtime to run the tests.
+      # The solution uses the .slnx format and the tests, samples and benchmarks target net10.0
+      # (the library also multi-targets net8.0), so the .NET 10 SDK is required to build and test.
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: |
-            8.0.x
-            10.0.x
+          dotnet-version: 10.0.x
 
       - name: Cache NuGet packages
         uses: actions/cache@v4
@@ -127,9 +125,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: |
-            8.0.x
-            10.0.x
+          dotnet-version: 10.0.x
 
       - name: Cache NuGet packages
         uses: actions/cache@v4
