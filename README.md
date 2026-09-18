@@ -383,8 +383,9 @@ are uploaded as a build artifact.
 The project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html); notable changes are
 recorded in [CHANGELOG.md](CHANGELOG.md).
 
-Pushing a `v*` tag runs `.github/workflows/release.yml`, which publishes every port with the tag
-version (`v1.2.3` publishes `1.2.3`, so tags must carry the full `MAJOR.MINOR.PATCH` number):
+Pushing a `v*.*.*` tag runs `.github/workflows/release.yml`, which publishes every port with the tag
+version (`v1.2.3` publishes `1.2.3`, so tags must carry the full `MAJOR.MINOR.PATCH` number; tags
+such as `v2.2` do not start a release):
 
 | Port | Package | Registry | Secrets |
 | --- | --- | --- | --- |
