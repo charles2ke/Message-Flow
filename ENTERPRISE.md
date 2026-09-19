@@ -20,7 +20,7 @@ questions without a support ticket.
 | Persistence | None; no files, no configuration, no environment variables |
 | Native code / P-Invoke / reflection | None |
 | Thread safety | A built chain is immutable and safe to share across threads |
-| Test coverage gate | 100% line/branch/method for C#, 100% line for Python; Java and Node have no enforced coverage gate |
+| Test coverage gate | 100% line/branch/method for C#, 100% coverage with branch measurement for Python; Java and Node have no enforced coverage gate |
 | Source of truth | This repository; releases are built only by GitHub Actions from a `v*` tag |
 | Vulnerability reporting | Private GitHub security advisory, see [SECURITY.md](SECURITY.md) |
 
@@ -92,7 +92,7 @@ Controls that run automatically in this repository:
 | OpenSSF Scorecard | `.github/workflows/scorecard.yml` | weekly, results published to code scanning |
 | Vulnerable package audit | `.github/workflows/ci.yml` | `dotnet list package --vulnerable --include-transitive` |
 | Automated dependency updates | `.github/dependabot.yml` | GitHub Actions, NuGet, npm, Maven and pip, weekly |
-| 100% coverage gate | `.github/workflows/ci.yml`, `.github/workflows/python-ci.yml` | C# enforces 100% line/branch/method; Python enforces 100% line. Java and Node have no coverage gate |
+| 100% coverage gate | `.github/workflows/ci.yml`, `.github/workflows/python-ci.yml` | C# enforces 100% line/branch/method; Python enforces 100% coverage with branch measurement enabled. Java and Node have no coverage gate |
 | SBOM per release | `.github/workflows/release.yml` | SPDX document attached to the workflow run |
 | Build provenance attestation | `.github/workflows/release.yml` | signed SLSA provenance for the .NET, Java and Python artifacts |
 | npm provenance | `.github/workflows/release.yml` | `npm publish --provenance`, visible on the npm package page |
