@@ -14,6 +14,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A GitHub Pages site with a Swagger UI playground, served by the JavaScript port in the browser.
 - Release automation for the Python and Node ports: pushing a `v*` tag now publishes the PyPI
   distribution and the npm package with the tag version.
+- Enterprise and compliance material: `ENTERPRISE.md` (licensing, data handling, operational
+  characteristics, supply-chain controls, governance and framework mapping), a real vulnerability
+  disclosure policy in `SECURITY.md` with response targets and a support window, plus
+  `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SUPPORT.md`, `CODEOWNERS`, issue forms and a pull
+  request template.
+- Supply-chain hardening: an OpenSSF Scorecard workflow, CodeQL analysis extended to the Java,
+  Python and TypeScript ports, and an SPDX SBOM, signed build provenance attestations and npm
+  publish provenance for every release.
 
 ### Changed
 

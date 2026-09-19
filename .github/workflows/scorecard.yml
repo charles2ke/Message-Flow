@@ -1,0 +1,39 @@
+name: Scorecard
+
+on:
+  branch_protection_rule:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "41 5 * * 1"
+  workflow_dispatch:
+
+permissions: read-all
+
+jobs:
+  analysis:
+    name: OpenSSF Scorecard
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      id-token: write
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Run analysis
+        uses: ossf/scorecard-action@v2
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          # Publishing the result requires a PAT with the read:packages scope; without it the
+          # score is still computed and uploaded to code scanning, just not to the public API.
+          publish_results: false
+
+      - name: Upload the SARIF result to code scanning
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.sarif

@@ -415,10 +415,37 @@ The documentation site is redeployed to GitHub Pages on every push to `main` by
 
 Security scanning runs automatically on every push and pull request:
 
-- **CodeQL** (`.github/workflows/codeql.yml`) with the `security-extended` query suite.
+- **CodeQL** (`.github/workflows/codeql.yml`) with the `security-extended` query suite, over the
+  C#, Java, Python and TypeScript sources.
 - **Dependency review** (`.github/workflows/dependency-review.yml`) on pull requests.
+- **OpenSSF Scorecard** (`.github/workflows/scorecard.yml`), weekly and on every push to `main`,
+  with the results published to code scanning.
 - **`dotnet list package --vulnerable --include-transitive`** in CI, which fails the build when a
   vulnerable NuGet package (direct or transitive) is detected.
+
+Each release also attaches an SPDX SBOM to its workflow run and produces signed build provenance
+attestations for the published artifacts, which you can verify with:
+
+```bash
+gh attestation verify <artifact> --repo charles2ke/Message-Flow
+```
+
+Report vulnerabilities privately as described in [SECURITY.md](SECURITY.md) — never in a public
+issue.
+
+## Enterprise and compliance
+
+[ENTERPRISE.md](ENTERPRISE.md) is the evidence pack for a security, legal or procurement review:
+licensing and IP, data handling (no telemetry, no network access, no persistence), operational
+characteristics, the supply-chain controls listed above and how to verify them, governance and
+support, and how all of it maps to SOC 2, ISO 27001, NIST SSDF, SLSA, the EU Cyber Resilience Act
+and GDPR questionnaires.
+
+## Contributing and support
+
+[CONTRIBUTING.md](CONTRIBUTING.md) describes the build, test and review process for every port, and
+[SUPPORT.md](SUPPORT.md) points at the right channel for questions. Participation is governed by the
+[Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Auto-updated documentation
 

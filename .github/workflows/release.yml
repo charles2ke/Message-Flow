@@ -8,9 +8,27 @@ permissions:
   contents: read
 
 jobs:
+  sbom:
+    name: Generate SBOM
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate an SPDX SBOM for the repository
+        uses: anchore/sbom-action@v0
+        with:
+          path: .
+          format: spdx-json
+          artifact-name: messageflow-sbom.spdx.json
+          output-file: messageflow-sbom.spdx.json
+
   publish:
     name: Pack and publish
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -26,6 +44,11 @@ jobs:
       - name: Pack
         run: dotnet pack src/MessageFlow/MessageFlow.csproj --configuration Release --output artifacts -p:PackageVersion="${GITHUB_REF_NAME#v}"
 
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: artifacts/*.nupkg
+
       - name: Publish to NuGet
         if: env.NUGET_API_KEY != ''
         env:
@@ -37,6 +60,10 @@ jobs:
   publish-java:
     name: Publish Java to Maven Central
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
     defaults:
       run:
         working-directory: java
@@ -62,6 +89,14 @@ jobs:
       - name: Derive version from tag
         run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
 
+      - name: Package
+        run: mvn -B -DskipTests package -Drevision="${VERSION}"
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: java/target/*.jar
+
       - name: Publish to Maven Central
         if: env.CENTRAL_TOKEN_USERNAME != '' && env.CENTRAL_TOKEN_PASSWORD != ''
         run: mvn -B -P central deploy -Drevision="${VERSION}"
@@ -69,6 +104,10 @@ jobs:
   publish-python:
     name: Publish Python to PyPI
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
     defaults:
       run:
         working-directory: python
@@ -103,6 +142,11 @@ jobs:
           python -m build
           twine check dist/*
 
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: python/dist/*
+
       - name: Publish to PyPI
         if: env.PYPI_API_TOKEN != ''
         env:
@@ -113,6 +157,10 @@ jobs:
   publish-node:
     name: Publish Node to npm
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
     defaults:
       run:
         working-directory: node
@@ -153,4 +201,4 @@ jobs:
         if: env.NPM_TOKEN != ''
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish
+        run: npm publish --provenance
