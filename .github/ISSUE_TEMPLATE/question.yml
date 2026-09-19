@@ -1,0 +1,24 @@
+name: Question
+description: Ask how to use the library, or ask a security or compliance review question
+labels: [question]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Procurement and security review questions are welcome here — many are already answered in
+        [ENTERPRISE.md](https://github.com/charles2ke/Message-Flow/blob/main/ENTERPRISE.md).
+        Vulnerabilities must instead be reported through a
+        [security advisory](https://github.com/charles2ke/Message-Flow/security/advisories/new).
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Port, version and anything you already tried or read.
