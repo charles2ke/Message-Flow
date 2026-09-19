@@ -73,7 +73,7 @@ jobs:
       PAGES_ENABLEMENT_TOKEN: ${{ secrets.PAGES_ENABLEMENT_TOKEN }}
     steps:
       - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
         with:
           token: ${{ env.PAGES_ENABLEMENT_TOKEN || github.token }}
           enablement: true
