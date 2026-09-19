@@ -1,0 +1,54 @@
+name: Bug report
+description: Report incorrect behaviour in one of the ports
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not use this form for security vulnerabilities. Report those privately through a
+        [security advisory](https://github.com/charles2ke/Message-Flow/security/advisories/new).
+
+  - type: dropdown
+    id: port
+    attributes:
+      label: Port
+      options:
+        - C# (.NET)
+        - Java
+        - Python
+        - Node / TypeScript
+        - Documentation site
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Package version, or the commit SHA when building from source.
+    validations:
+      required: true
+
+  - type: input
+    id: runtime
+    attributes:
+      label: Runtime
+      description: For example .NET 10.0.1, Temurin 17.0.10, CPython 3.12.4, Node 22.9.0.
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproducer
+      description: The smallest chain that shows the problem.
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual behaviour
+    validations:
+      required: true

@@ -1,0 +1,35 @@
+name: Feature request
+description: Propose a change to the API or the behaviour of a port
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What can you not express with the current API?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: The API or behaviour you have in mind, and how it would look in code.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Including what you do today as a workaround.
+
+  - type: checkboxes
+    id: constraints
+    attributes:
+      label: Project constraints
+      options:
+        - label: The proposal keeps every port dependency-free.
+          required: true
+        - label: The proposal can be expressed in all four ports, or is explicitly port-specific.
+          required: true
