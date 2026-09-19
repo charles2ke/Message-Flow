@@ -61,9 +61,11 @@ processes, or read configuration or environment variables. Every port ships with
 dependencies, so the transitive attack surface of adopting it is the library itself.
 
 - Requests and responses are passed through unchanged; nothing is copied, cached or serialised.
-- No telemetry is collected and nothing is sent over the network. The optional `UseLogging` and
-  `UseTracing` decorators only emit to the sink or `ActivitySource` the application provides, and
-  what they emit is described in [ENTERPRISE.md](ENTERPRISE.md#data-handling-and-privacy).
+- No telemetry is collected and nothing is sent over the network. The optional `UseLogging`
+  decorator only emits to the sink the application provides. `UseTracing` emits on a caller-supplied
+  tracer interface in Java, Python and Node; in C# it emits on the library-created
+  `ChainDiagnostics.ActivitySource`, and the application only subscribes listeners/exporters to it.
+  What they emit is described in [ENTERPRISE.md](ENTERPRISE.md#data-handling-and-privacy).
 - A chain is immutable once built and safe to share across threads; handlers supplied by the
   application must be thread-safe themselves.
 - Exceptions thrown by handlers propagate unchanged, including their messages and stack traces, so
@@ -71,9 +73,11 @@ dependencies, so the transitive attack surface of adopting it is the library its
 
 ## Security assurance in the pipeline
 
-Every push and pull request runs CodeQL (`security-extended`) over the C#, Java, Python and
-TypeScript sources, dependency review, OpenSSF Scorecard, and a vulnerable-package audit per
-ecosystem. Releases are built by GitHub Actions with pinned workflow permissions, and ship an SBOM
-and a signed build provenance attestation. See
-[ENTERPRISE.md](ENTERPRISE.md#supply-chain-assurance) for the full list and for how to verify the
-artifacts you consume.
+CodeQL (`security-extended`) over the C#, Java, Python and TypeScript sources, and the .NET CI
+build, run on push and pull requests targeting `main`. Dependency review runs on pull requests
+only. OpenSSF Scorecard runs weekly and on push to `main`. A vulnerable-package audit currently
+covers the NuGet ecosystem only (`dotnet list package --vulnerable --include-transitive` in CI).
+Releases are built by GitHub Actions with pinned workflow permissions, and ship an SBOM and a
+signed build provenance attestation for the .NET, Java and Python artifacts (the npm artifact uses
+`npm publish --provenance` instead). See [ENTERPRISE.md](ENTERPRISE.md#supply-chain-assurance) for
+the full list and for how to verify the artifacts you consume.

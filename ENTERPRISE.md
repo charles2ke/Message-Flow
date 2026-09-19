@@ -20,16 +20,18 @@ questions without a support ticket.
 | Persistence | None; no files, no configuration, no environment variables |
 | Native code / P-Invoke / reflection | None |
 | Thread safety | A built chain is immutable and safe to share across threads |
-| Test coverage gate | 100% line, branch and method, enforced in CI |
+| Test coverage gate | 100% line/branch/method for C#, 100% line for Python; Java and Node have no enforced coverage gate |
 | Source of truth | This repository; releases are built only by GitHub Actions from a `v*` tag |
 | Vulnerability reporting | Private GitHub security advisory, see [SECURITY.md](SECURITY.md) |
 
 ## Licensing and intellectual property
 
 Every port is licensed under Apache-2.0 ([LICENSE](LICENSE)), including the explicit patent grant of
-section 3, which is what most enterprise legal reviews look for. The published packages declare the
-same SPDX identifier (`Apache-2.0`) in their metadata, so licence scanners resolve them without a
-manual exception.
+section 3, which is what most enterprise legal reviews look for. .NET and npm declare the SPDX
+expression `Apache-2.0` directly in their package metadata (`PackageLicenseExpression`, `license`
+field); Python's package metadata uses the text license field `Apache-2.0`, and Maven exposes a
+license name/URL pair (`Apache License, Version 2.0`) rather than an SPDX identifier, so a scanner
+that only understands SPDX expressions may need a manual mapping for the Java artifact.
 
 Because no port has runtime dependencies, adopting MessageFlow introduces exactly one licence into
 your dependency graph. The development-time dependencies (xUnit, JUnit, pytest, ruff, TypeScript and
@@ -43,17 +45,20 @@ no separate contributor licence agreement and no copyright assignment.
 
 MessageFlow moves an application's own request and response objects between the application's own
 handlers. It never inspects, copies, serialises, persists or transmits them, and it has no notion of
-users, identifiers or personal data. It therefore processes no personal data of its own and is not a
-processor in its own right for GDPR purposes: whatever flows through a chain is data your
-application already holds.
+users, identifiers or personal data of its own. Whether a deployment acts as a GDPR controller or
+processor depends entirely on how the application built with the library uses and configures it;
+the library itself does not process personal data and does not determine that role.
 
 Two optional decorators emit information, and both are off unless you enable them:
 
-- `UseLogging` writes structured entries — handler position, handler type name, whether the request
-  was handled, and the elapsed time — to the `IChainLogger` (or equivalent per-port sink) that you
-  supply. Request and response values are not included.
-- `UseTracing` starts `Activity` spans (and the equivalent in the other ports) on an
-  `ActivitySource` that you own, so they reach only the exporters you configure.
+- `UseLogging` writes a plain text message — the chain name (source and destination type names) and
+  the elapsed time on start/completion, or the exception on failure — to the `IChainLogger` (or
+  equivalent per-port sink) that you supply. Request and response values are not included.
+- `UseTracing` starts `Activity` spans (and the equivalent in the other ports). For the C# port,
+  these are emitted on the library-created `ChainDiagnostics.ActivitySource`; your application
+  subscribes listeners/exporters to it, it does not supply the source itself. The other ports accept
+  a caller-supplied tracer interface instead. Either way, spans reach only the exporters you
+  configure.
 
 Handler exceptions propagate unchanged. If your requests carry regulated data, redact it in your own
 handlers or log sinks before it reaches an exception message.
@@ -87,9 +92,9 @@ Controls that run automatically in this repository:
 | OpenSSF Scorecard | `.github/workflows/scorecard.yml` | weekly, results published to code scanning |
 | Vulnerable package audit | `.github/workflows/ci.yml` | `dotnet list package --vulnerable --include-transitive` |
 | Automated dependency updates | `.github/dependabot.yml` | GitHub Actions, NuGet, npm, Maven and pip, weekly |
-| 100% coverage gate | `.github/workflows/ci.yml` | line, branch and method |
+| 100% coverage gate | `.github/workflows/ci.yml`, `.github/workflows/python-ci.yml` | C# enforces 100% line/branch/method; Python enforces 100% line. Java and Node have no coverage gate |
 | SBOM per release | `.github/workflows/release.yml` | SPDX document attached to the workflow run |
-| Build provenance attestation | `.github/workflows/release.yml` | signed SLSA provenance for the published artifacts |
+| Build provenance attestation | `.github/workflows/release.yml` | signed SLSA provenance for the .NET, Java and Python artifacts |
 | npm provenance | `.github/workflows/release.yml` | `npm publish --provenance`, visible on the npm package page |
 
 All workflows declare a read-only default `permissions` block and elevate only the job that needs
@@ -99,8 +104,12 @@ its registry credential is absent, so a fork or a mis-triggered run cannot publi
 ### Verifying what you consume
 
 ```bash
-# .NET, Node, Python or Java artifact downloaded from its registry
+# .NET (.nupkg), Java (.jar) or Python (sdist/wheel) artifact downloaded from its registry, using
+# the build provenance attestation created by actions/attest-build-provenance
 gh attestation verify <artifact> --repo charles2ke/Message-Flow
+
+# npm package: verify the registry-signed provenance attestation instead
+npm audit signatures
 ```
 
 The SPDX SBOM for a release is attached to the corresponding run of the release workflow and can be
@@ -114,8 +123,8 @@ into the exact sources that produced the binary.
 - **Versioning.** Semantic Versioning. Breaking changes to a public API only happen in a major
   release and are listed in [CHANGELOG.md](CHANGELOG.md); the public API surface of the C# port is
   regenerated into the README on every change, so API drift is visible in the diff.
-- **Release cadence.** Releases are cut on demand from `main`; every release publishes all four
-  ports under the same version.
+- **Release cadence.** Releases are cut on demand from `main`; a release can publish any subset of
+  the four ports, since each publish job is skipped when its registry credential is absent.
 - **Support channels.** See [SUPPORT.md](SUPPORT.md). There is no commercial support contract; the
   project is maintained on a best-effort basis under the response targets in
   [SECURITY.md](SECURITY.md) for security reports.

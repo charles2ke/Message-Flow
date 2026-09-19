@@ -34,7 +34,10 @@ contributor licence agreement. All project spaces are governed by the
 
 ## Building and testing
 
-Run the checks for every port you touched. CI runs the same commands.
+Run the checks for every port you touched. These are the core commands; CI runs additional checks
+per port (Java also builds Javadoc, Python also checks formatting with `ruff format --check`, and
+Node also runs `npm run typecheck`), so passing these locally does not guarantee every required
+check passes.
 
 ```bash
 # C#
@@ -44,16 +47,16 @@ dotnet test tests/MessageFlow.Tests/MessageFlow.Tests.csproj \
   -p:CollectCoverage=true -p:Threshold=100 -p:ThresholdType="line%2cbranch%2cmethod"
 
 # Java
-(cd java && mvn verify)
+(cd java && mvn verify && mvn javadoc:javadoc)
 
 # Python
-(cd python && pip install -e ".[dev]" && ruff check src tests && pytest --cov=messageflow --cov-fail-under=100)
+(cd python && pip install -e ".[dev]" && ruff check src tests && ruff format --check src tests && pytest --cov=messageflow --cov-fail-under=100)
 
 # Node
-(cd node && npm ci && npm test)
+(cd node && npm ci && npm run typecheck && npm test)
 
-# Documentation site
-(cd docs && npm ci && npm run build)
+# Documentation site (builds the Node port first, since the site embeds it)
+(cd docs && npm ci && npm run build:all)
 ```
 
 Comma-separated MSBuild `-p` values must be escaped as `%2c` in a shell, as above.

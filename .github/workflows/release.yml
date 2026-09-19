@@ -41,8 +41,17 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
+      - name: Validate tag and derive version
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Release tags must use full semver format vMAJOR.MINOR.PATCH (for example, v1.2.3)."
+            exit 1
+          fi
+          echo "VERSION=${VERSION}" >> "$GITHUB_ENV"
+
       - name: Pack
-        run: dotnet pack src/MessageFlow/MessageFlow.csproj --configuration Release --output artifacts -p:PackageVersion="${GITHUB_REF_NAME#v}"
+        run: dotnet pack src/MessageFlow/MessageFlow.csproj --configuration Release --output artifacts -p:PackageVersion="${VERSION}"
 
       - name: Attest build provenance
         uses: actions/attest-build-provenance@v2
@@ -86,8 +95,14 @@ jobs:
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
           gpg-passphrase: MAVEN_GPG_PASSPHRASE
 
-      - name: Derive version from tag
-        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+      - name: Validate tag and derive version
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Release tags must use full semver format vMAJOR.MINOR.PATCH (for example, v1.2.3)."
+            exit 1
+          fi
+          echo "VERSION=${VERSION}" >> "$GITHUB_ENV"
 
       - name: Package
         run: mvn -B -DskipTests package -Drevision="${VERSION}"

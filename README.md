@@ -413,22 +413,25 @@ The documentation site is redeployed to GitHub Pages on every push to `main` by
 
 ## Security
 
-Security scanning runs automatically on every push and pull request:
+Security scanning is configured across these workflows:
 
 - **CodeQL** (`.github/workflows/codeql.yml`) with the `security-extended` query suite, over the
-  C#, Java, Python and TypeScript sources.
-- **Dependency review** (`.github/workflows/dependency-review.yml`) on pull requests.
-- **OpenSSF Scorecard** (`.github/workflows/scorecard.yml`), weekly and on every push to `main`,
-  with the results published to code scanning.
-- **`dotnet list package --vulnerable --include-transitive`** in CI, which fails the build when a
-  vulnerable NuGet package (direct or transitive) is detected.
+  C#, Java, Python and TypeScript sources, on push and pull requests targeting `main`.
+- **Dependency review** (`.github/workflows/dependency-review.yml`) on pull requests only.
+- **OpenSSF Scorecard** (`.github/workflows/scorecard.yml`), weekly and on push to `main`.
+- **`dotnet list package --vulnerable --include-transitive`** in CI (NuGet only), which fails the
+  build when a vulnerable NuGet package (direct or transitive) is detected.
 
 Each release also attaches an SPDX SBOM to its workflow run and produces signed build provenance
-attestations for the published artifacts, which you can verify with:
+attestations for the .NET, Java and Python artifacts, which you can verify with:
 
 ```bash
+# .NET, Java or Python artifact
 gh attestation verify <artifact> --repo charles2ke/Message-Flow
 ```
+
+The npm artifact is not covered by `attest-build-provenance`; it is published with
+`npm publish --provenance` instead, which you can check with `npm audit signatures`.
 
 Report vulnerabilities privately as described in [SECURITY.md](SECURITY.md) — never in a public
 issue.
