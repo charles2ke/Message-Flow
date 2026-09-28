@@ -54,7 +54,7 @@ jobs:
         run: dotnet pack src/MessageFlow/MessageFlow.csproj --configuration Release --output artifacts -p:PackageVersion="${VERSION}"
 
       - name: Attest build provenance
-        uses: actions/attest-build-provenance@8beda2b7ed98355c0e97c0a63bec38ae472e66c4 # v4
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4
         with:
           subject-path: artifacts/*.nupkg
 
@@ -108,7 +108,7 @@ jobs:
         run: mvn -B -DskipTests package -Drevision="${VERSION}"
 
       - name: Attest build provenance
-        uses: actions/attest-build-provenance@8beda2b7ed98355c0e97c0a63bec38ae472e66c4 # v4
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4
         with:
           subject-path: java/target/*.jar
 
@@ -158,7 +158,7 @@ jobs:
           twine check dist/*
 
       - name: Attest build provenance
-        uses: actions/attest-build-provenance@8beda2b7ed98355c0e97c0a63bec38ae472e66c4 # v4
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4
         with:
           subject-path: python/dist/*
 
