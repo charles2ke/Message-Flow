@@ -52,6 +52,7 @@ jobs:
             --logger "trx;LogFileName=test-results.trx" \
             -p:CollectCoverage=true \
             -p:CoverletOutputFormat="cobertura%2cjson" \
+            -p:Include="[MessageFlow]*" \
             -p:CoverletOutput=../../artifacts/coverage/ \
             -p:Threshold=100 \
             -p:ThresholdType="line%2cbranch%2cmethod"
