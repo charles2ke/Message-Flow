@@ -23,7 +23,8 @@ concurrency:
 jobs:
   build-test:
     name: Build and test (Python ${{ matrix.python-version }})
-    runs-on: ubuntu-latest
+    # Pinned: actions/python-versions publishes no Python 3.9 build for Ubuntu 26.04 (ubuntu-latest).
+    runs-on: ubuntu-24.04
     strategy:
       # Pull requests only check the oldest and the newest supported interpreter; the full
       # matrix runs on main and on demand.
